@@ -113,7 +113,7 @@ class Chain:
 
     def validate_block(self, block: Block) -> bool:
         if block.index == 0:
-            # Validate Genesis
+            # TODO: Validate Genesis
             return True
         if block.index != self._last_block_index + 1:
             return False
