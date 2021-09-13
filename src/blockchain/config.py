@@ -14,3 +14,5 @@ class Config:
 
     test_net = False
     test_net_wallet_initial_coins = 100
+
+    new_block_interval = 60  # Seconds

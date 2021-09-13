@@ -41,6 +41,7 @@ def wallet_penalty(
     wallets_sorted_by_address: list,
 ):
     wallets_count = len(wallets_sorted_by_address)
-    winner_index = _find_lottery_winner(root, lottery_number)
+    winner_address = _find_lottery_winner(root, lottery_number)
+    winner_index = _binary_search(wallets_sorted_by_address, winner_address)
     wallet_index = _binary_search(wallets_sorted_by_address, wallet_address)
     return _wallet_distance(winner_index, wallet_index, wallets_count)

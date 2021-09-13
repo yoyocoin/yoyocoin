@@ -8,6 +8,9 @@ from .block import Block
 from .transaction import Transaction
 from .chain_wallet import ChainWallet
 from .config import Config
+from .consensus import wallet_penalty, SumTree
+from .next_block_chooser import NextBlockChooser
+from .hardcoded import GENESIS_BLOCK, developer_address
 
 
 class Chain:
@@ -30,11 +33,15 @@ class Chain:
         self.transaction_pool: Dict[str, Transaction] = {}  # {transaction_hash: transaction object}
         self.chain_wallets: Dict[str, ChainWallet] = {}  # {chain wallet address: chain wallet object}
 
-        # TODO: load genesis from hard coded module
-        genesis_block = Block(index=0, previous_hash="0", timestamp=time.time(), forger="0")
-        self.blocks.append(genesis_block)
         self.penalty: int = 0
+        self.sum_tree = None
         self.epoch_random = Config.epoch_initial_random
+
+        self.get_chain_wallet(developer_address)
+        self._insert_block_to_chain(GENESIS_BLOCK)
+
+        self.next_block_chooser = NextBlockChooser(self)
+        self.next_block_chooser.start()
 
     def get_chain_wallet(self, address: str):
         if address not in self.chain_wallets:
@@ -46,6 +53,14 @@ class Chain:
 
     def add_block(self, block_dict: dict):
         block = Block.from_dict(block_dict)
+        self.next_block_chooser.scan_block(block)
+
+    def link_new_block(self, block: Block, _i_know_what_i_doing: bool = False):
+        if not _i_know_what_i_doing:
+            raise RuntimeError(
+                "You can't access this sensitive method without _i_know_what_i_doing argument, "
+                "You are probable not need to access it directly and should call add_block instead."
+            )
         self._process_block(block)
 
     def add_transaction(self, transaction_dict: dict):
@@ -77,25 +92,6 @@ class Chain:
             tx_counter=tx_counter,
         )
         return transaction
-
-    @property
-    def _last_block(self) -> Block:
-        return self.blocks[-1]
-
-    @property
-    def _last_block_index(self) -> int:
-        return self._last_block.index
-
-    @property
-    def _last_block_hash(self) -> str:
-        return self._last_block.hash
-
-    def _get_transactions(self, max: int):
-        max = min(max, len(self.transaction_pool))
-        return sorted(islice(
-            sorted(self.transaction_pool.values(), key=lambda transaction: transaction.fee, reverse=True),
-            max
-        ), key=lambda transaction: transaction.tx_counter)
 
     def validate_transaction(self, transaction: Transaction) -> bool:
         sender_wallet = self.get_chain_wallet(transaction.sender)
@@ -133,6 +129,14 @@ class Chain:
                 return False
         return True
 
+    def block_penalty(self, block: Block) -> int:
+        return wallet_penalty(
+            self.sum_tree,
+            block.forger,
+            self.epoch_random,
+            list(sorted(self.chain_wallets.keys()))
+        )
+
     def _process_block(self, block: Block):
         if not self.validate_block(block):
             raise  # TODO: create exception
@@ -149,13 +153,37 @@ class Chain:
         forger_wallet.balance += fees
         self._insert_block_to_chain(block)
 
-    def _next_epoch_random(self, new_block_forger_address: str):
-        bytes_compressed_address = b64decode(new_block_forger_address)[1:]
-        new_random = int.from_bytes(bytes_compressed_address, 'big')
-        return new_random / Config.curve.order
-
     def _insert_block_to_chain(self, block: Block):
         self.blocks.append(block)
         self.epoch_random = self._next_epoch_random(block.forger)
         for transaction in block.transactions:
             del self.transaction_pool[transaction.hash]
+        if self.sum_tree is None or block.index % Config.epoch_size == 0:
+            self._build_sum_tree()
+
+    def _next_epoch_random(self, new_block_forger_address: str):
+        bytes_compressed_address = b64decode(new_block_forger_address)[1:]
+        new_random = int.from_bytes(bytes_compressed_address, 'big')
+        return new_random / Config.curve.order
+
+    def _build_sum_tree(self):
+        self.sum_tree = SumTree.from_dict({address: wallet.balance for address, wallet in self.chain_wallets.items()})
+
+    @property
+    def _last_block(self) -> Block:
+        return self.blocks[-1]
+
+    @property
+    def _last_block_index(self) -> int:
+        return self._last_block.index
+
+    @property
+    def _last_block_hash(self) -> str:
+        return self._last_block.hash
+
+    def _get_transactions(self, max: int):
+        max = min(max, len(self.transaction_pool))
+        return sorted(islice(
+            sorted(self.transaction_pool.values(), key=lambda transaction: transaction.fee, reverse=True),
+            max
+        ), key=lambda transaction: transaction.tx_counter)

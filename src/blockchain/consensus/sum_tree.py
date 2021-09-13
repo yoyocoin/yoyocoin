@@ -36,5 +36,5 @@ class SumTree:
         value: value that is sumed
         data:  data returned on search
         """
-        arr = [cls(value=v, data=d) for v, d in k_v_data.items()]
+        arr = [cls(value=v, data=d) for d, v in k_v_data.items()]
         return cls._build_tree(arr)

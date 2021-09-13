@@ -1,4 +1,5 @@
 import unittest
+from time import sleep
 
 from blockchain import Actor, Chain, Config
 
@@ -8,6 +9,7 @@ class MyActorTesterOnTestNet(unittest.TestCase):
         Chain.reset()
         Config.test_net = True
         Config.test_net_wallet_initial_coins = 100
+        Config.new_block_interval = 1
 
     def test_create_transaction(self):
         actor1 = Actor(secret_key="super_secret1!")
@@ -65,6 +67,7 @@ class MyActorTesterOnTestNet(unittest.TestCase):
 
         actor1.transfer_coins(recipient=actor2.address, amount=transaction_amount, fee=transaction_fee)
         forger.forge_block()
+        sleep(2)  # Wait until the block is added
 
         after_transaction_actor2_balance = actor2.balance
         after_transaction_actor1_balance = actor1.balance
