@@ -239,7 +239,7 @@ class Chain:
                     key=lambda transaction: transaction.fee,
                     reverse=True,
                 ),
-                max,
+                count,
             ),
             key=lambda transaction: transaction.tx_counter,
         )
