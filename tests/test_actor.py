@@ -53,6 +53,20 @@ class MyActorTesterOnTestNet(unittest.TestCase):
         with self.assertRaises(ValidationError):
             actor1.transfer_coins(recipient=actor2.address, amount=10, fee=0)
 
+    def test_chain_tx_counter(self):
+        forger = Actor(secret_key="forger_secret!")
+        sender = Actor(secret_key="super_secret1!")
+        recipient = Actor(secret_key="super_secret2!")
+
+        sender.transfer_coins(recipient=recipient.address, amount=10)
+
+        tx_counter_before = sender.chain_tx_counter
+        forger.forge_block()
+        sleep(2)  # wait for block creation
+        tx_counter_after = sender.chain_tx_counter
+
+        self.assertGreater(tx_counter_after, tx_counter_before)
+
     def test_actor_balance(self):
         forger = Actor(secret_key="forger_secret!")
 

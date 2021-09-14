@@ -4,10 +4,10 @@ class ChainWallet:
         self.balance = balance
         self.tx_counter = tx_counter
 
-    def add_coins(self, amount: int):
+    def add_coins(self, amount: float):
         self.balance += amount
 
-    def subtract_coins(self, amount: int):
+    def subtract_coins(self, amount: float):
         self.balance -= amount
 
     def update_tx_counter(self, update_tx_counter: int):

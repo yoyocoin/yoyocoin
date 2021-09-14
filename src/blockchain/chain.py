@@ -56,7 +56,7 @@ class Chain:
         self.epoch_random = Config.epoch_initial_random
 
         self.get_chain_wallet(developer_address)
-        self._insert_block_to_chain(GENESIS_BLOCK)
+        self.link_new_block(GENESIS_BLOCK, _i_know_what_i_doing=True)
 
         self.next_block_chooser = NextBlockChooser(self)
         self.next_block_chooser.start()
@@ -83,8 +83,7 @@ class Chain:
 
     def add_transaction(self, transaction_dict: dict):
         transaction = Transaction.from_dict(transaction_dict)
-        if not self.validate_transaction(transaction):
-            raise
+        self.validate_transaction(transaction)
         self.transaction_pool[transaction.hash] = transaction
 
     def create_unsigned_block(self, forger: str):
@@ -191,12 +190,12 @@ class Chain:
         for transaction in block.transactions:
             sender_wallet = self.get_chain_wallet(transaction.sender)
             recipient_wallet = self.get_chain_wallet(transaction.recipient)
-            sender_wallet.balance -= transaction.amount
-            recipient_wallet.balance += transaction.amount
-            sender_wallet.balance -= transaction.fee
+            sender_wallet.subtract_coins(transaction.amount)
+            sender_wallet.subtract_coins(transaction.fee)
+            recipient_wallet.add_coins(transaction.amount)
             fees += transaction.fee
             sender_wallet.update_tx_counter(transaction.tx_counter)
-        forger_wallet.balance += fees
+        forger_wallet.add_coins(fees)
         self._insert_block_to_chain(block)
 
     def _insert_block_to_chain(self, block: Block):
