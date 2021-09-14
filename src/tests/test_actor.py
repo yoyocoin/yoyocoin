@@ -70,7 +70,7 @@ class MyActorTesterOnTestNet(unittest.TestCase):
             recipient=actor2.address, amount=transaction_amount, fee=transaction_fee
         )
         forger.forge_block()
-        sleep(2)  # Wait until the block is added
+        sleep(2)  # Wait until the block is added, we set the block adding interval to 1 in the setUp method
 
         after_transaction_actor2_balance = actor2.balance
         after_transaction_actor1_balance = actor1.balance
