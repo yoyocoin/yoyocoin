@@ -8,6 +8,9 @@ class MyChainTester(unittest.TestCase):
     def setUp(self) -> None:
         Chain.reset()
 
+    def tearDown(self) -> None:
+        Chain.get_instance().next_block_chooser.stop()
+
     def test_epoch_random_updater_distribution(self):
         chain = Chain.get_instance()
         sample_size = 2000
@@ -30,7 +33,3 @@ class MyChainTester(unittest.TestCase):
             max(distribution) - min(distribution)
             < (sample_size / distribution_sections) * precision
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

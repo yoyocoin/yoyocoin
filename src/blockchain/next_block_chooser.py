@@ -18,8 +18,7 @@ class NextBlockChooser(Thread):
         self.__stop = False
 
     def scan_block(self, block: Block):
-        if not self.chain.validate_block(block):
-            return
+        self.chain.validate_block(block)
         self.blocks_queue.put(item=block)
 
     def _check_block(self):

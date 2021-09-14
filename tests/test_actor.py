@@ -102,7 +102,3 @@ class MyActorTesterOnTestNet(unittest.TestCase):
             before_transaction_forger_balance + transaction_fee,
             after_transaction_forger_balance,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

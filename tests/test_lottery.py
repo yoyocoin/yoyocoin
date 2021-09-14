@@ -20,7 +20,3 @@ class LotteryTester(unittest.TestCase):
 
         a_winning = wallet_penalty(sum_tree, "a", lottery_number=0.001, wallets_sorted_by_address=sorted_wallets)
         self.assertEqual(a_winning, 0)
-
-
-if __name__ == '__main__':
-    unittest.main()
