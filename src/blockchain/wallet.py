@@ -1,6 +1,6 @@
 from base64 import b64encode
 
-from ecdsa.keys import SigningKey
+from ecdsa.keys import SigningKey  # type: ignore
 
 from .config import Config
 

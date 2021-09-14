@@ -1,5 +1,8 @@
-from ecdsa.curves import SECP256k1
+from ecdsa.curves import SECP256k1  # type: ignore
 from hashlib import sha256
+
+
+__all__ = ["Config"]
 
 
 class Config:

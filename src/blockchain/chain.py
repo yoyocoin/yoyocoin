@@ -52,7 +52,7 @@ class Chain:
         ] = {}  # {chain wallet address: chain wallet object}
 
         self.penalty: int = 0
-        self.sum_tree = None
+        self.sum_tree: SumTree = None  # type: ignore
         self.epoch_random = Config.epoch_initial_random
 
         self.get_chain_wallet(developer_address)
@@ -161,7 +161,7 @@ class Chain:
                 max_transactions=Config.max_transactions_per_block,
             )
 
-        block_wallets = defaultdict(float)  # {str, float}
+        block_wallets: Dict[str, float] = defaultdict(float)
         for transaction in block.transactions:
             self.validate_transaction(transaction)
             block_wallets[transaction.sender] += transaction.amount + transaction.fee

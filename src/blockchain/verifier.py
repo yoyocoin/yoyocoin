@@ -1,6 +1,6 @@
 from base64 import b64decode
 
-from ecdsa.keys import VerifyingKey, BadSignatureError
+from ecdsa.keys import VerifyingKey, BadSignatureError  # type: ignore
 
 from .config import Config
 

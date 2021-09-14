@@ -44,7 +44,7 @@ class Transaction(Signed):
 
     def signature_verified(self) -> bool:
         return self.is_signed and Verifier.is_verified(
-            self.verifying_key, self.signature, self.hash
+            self.verifying_key, self.signature, self.hash  # type: ignore
         )
 
     def to_dict(self) -> dict:

@@ -24,7 +24,7 @@ class NextBlockChooser(Thread):
 
     def _check_block(self):
         try:
-            block = self.blocks_queue.get(timeout=1)
+            block: Block = self.blocks_queue.get(timeout=1)
         except Empty:
             return
         block_penalty = self.chain.block_penalty(block)
