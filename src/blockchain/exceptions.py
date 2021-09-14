@@ -1,5 +1,3 @@
-
-
 __all__ = [
     "BlockChainError",
     "ValidationError",

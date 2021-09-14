@@ -12,7 +12,9 @@ class Verifier:
             b64decode(verifying_key_str), curve=Config.curve, hashfunc=Config.hashfunc
         )
         try:
-            verifying_key.verify(b64decode(signature), hash_str.encode(), hashfunc=Config.hashfunc)
+            verifying_key.verify(
+                b64decode(signature), hash_str.encode(), hashfunc=Config.hashfunc
+            )
         except BadSignatureError:
             return False
         else:

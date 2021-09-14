@@ -23,10 +23,14 @@ class MyChainTester(unittest.TestCase):
 
         for result in results:
             section_size = total / distribution_sections
-            distribution[round(result / section_size)-1] += 1
+            distribution[round(result / section_size) - 1] += 1
 
         precision = 0.3
-        self.assertTrue(max(distribution) - min(distribution) < (sample_size / distribution_sections)*precision)
+        self.assertTrue(
+            max(distribution) - min(distribution)
+            < (sample_size / distribution_sections) * precision
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

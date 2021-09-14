@@ -7,13 +7,13 @@ from .verifier import Verifier
 
 class Block(Signed):
     def __init__(
-            self,
-            index: int,
-            previous_hash: str,
-            timestamp: float,
-            forger: str,
-            transactions: list = None,
-            signature: str = None,
+        self,
+        index: int,
+        previous_hash: str,
+        timestamp: float,
+        forger: str,
+        transactions: list = None,
+        signature: str = None,
     ):
         if transactions is None:
             transactions = []
@@ -44,7 +44,9 @@ class Block(Signed):
         self.signature = signature
 
     def signature_verified(self) -> bool:
-        return self.is_signed and Verifier.is_verified(self.verifying_key, self.signature, self.hash)
+        return self.is_signed and Verifier.is_verified(
+            self.verifying_key, self.signature, self.hash
+        )
 
     def to_dict(self):
         return {
@@ -52,12 +54,16 @@ class Block(Signed):
             "forger": self.forger,
             "previous_hash": self.previous_hash,
             "timestamp": self.timestamp,
-            "transactions": [transaction.to_dict() for transaction in self.transactions],
+            "transactions": [
+                transaction.to_dict() for transaction in self.transactions
+            ],
             "signature": self.signature,
         }
 
     @classmethod
     def from_dict(cls, block_dict: dict):
-        transactions = [Transaction.from_dict(t) for t in block_dict.get("transactions", [])]
+        transactions = [
+            Transaction.from_dict(t) for t in block_dict.get("transactions", [])
+        ]
         block_dict["transactions"] = transactions
         return cls(**block_dict)

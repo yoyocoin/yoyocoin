@@ -34,7 +34,7 @@ class Actor:
             recipient=recipient,
             amount=amount,
             fee=fee,
-            tx_counter=self.tx_counter
+            tx_counter=self.tx_counter,
         )
         signature = self.wallet.sign(transaction.hash)
         transaction.add_signature(signature)

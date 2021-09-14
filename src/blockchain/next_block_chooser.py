@@ -28,7 +28,10 @@ class NextBlockChooser(Thread):
         except Empty:
             return
         block_penalty = self.chain.block_penalty(block)
-        if self.__best_block_penalty is None or block_penalty < self.__best_block_penalty:
+        if (
+            self.__best_block_penalty is None
+            or block_penalty < self.__best_block_penalty
+        ):
             self.__current_best_block = block
             self.__best_block_penalty = block_penalty
 
@@ -38,7 +41,9 @@ class NextBlockChooser(Thread):
 
     def _add_new_block(self):
         if self.__current_best_block is not None:
-            self.chain.link_new_block(self.__current_best_block, _i_know_what_i_doing=True)
+            self.chain.link_new_block(
+                self.__current_best_block, _i_know_what_i_doing=True
+            )
         self._reset()
 
     def run(self):

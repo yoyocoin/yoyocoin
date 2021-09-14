@@ -66,7 +66,9 @@ class MyActorTesterOnTestNet(unittest.TestCase):
         before_transaction_actor1_balance = actor1.balance
         before_transaction_forger_balance = forger.balance
 
-        actor1.transfer_coins(recipient=actor2.address, amount=transaction_amount, fee=transaction_fee)
+        actor1.transfer_coins(
+            recipient=actor2.address, amount=transaction_amount, fee=transaction_fee
+        )
         forger.forge_block()
         sleep(2)  # Wait until the block is added
 
@@ -75,10 +77,18 @@ class MyActorTesterOnTestNet(unittest.TestCase):
         after_transaction_forger_balance = forger.balance
 
         self.assertEqual(
-            before_transaction_actor1_balance - transaction_amount - transaction_fee, after_transaction_actor1_balance
+            before_transaction_actor1_balance - transaction_amount - transaction_fee,
+            after_transaction_actor1_balance,
         )
-        self.assertEqual(before_transaction_actor2_balance + transaction_amount, after_transaction_actor2_balance)
-        self.assertEqual(before_transaction_forger_balance + transaction_fee, after_transaction_forger_balance)
+        self.assertEqual(
+            before_transaction_actor2_balance + transaction_amount,
+            after_transaction_actor2_balance,
+        )
+        self.assertEqual(
+            before_transaction_forger_balance + transaction_fee,
+            after_transaction_forger_balance,
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

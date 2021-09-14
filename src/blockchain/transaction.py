@@ -5,7 +5,15 @@ from .verifier import Verifier
 
 
 class Transaction(Signed):
-    def __init__(self, sender: str, recipient: str, amount: float, fee: float, tx_counter: int, signature: str = None):
+    def __init__(
+        self,
+        sender: str,
+        recipient: str,
+        amount: float,
+        fee: float,
+        tx_counter: int,
+        signature: str = None,
+    ):
         self.sender = sender
         self.recipient = recipient
         self.amount = amount
@@ -30,10 +38,14 @@ class Transaction(Signed):
         return sha256(self._raw_transaction().encode()).hexdigest()
 
     def _raw_transaction(self) -> str:
-        return f"{self.sender}:{self.recipient}:{self.amount}:{self.fee}:{self.tx_counter}"
+        return (
+            f"{self.sender}:{self.recipient}:{self.amount}:{self.fee}:{self.tx_counter}"
+        )
 
     def signature_verified(self) -> bool:
-        return self.is_signed and Verifier.is_verified(self.verifying_key, self.signature, self.hash)
+        return self.is_signed and Verifier.is_verified(
+            self.verifying_key, self.signature, self.hash
+        )
 
     def to_dict(self) -> dict:
         return {
