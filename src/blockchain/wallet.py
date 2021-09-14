@@ -1,6 +1,6 @@
 from base64 import b64encode
 
-from ecdsa.keys import SigningKey, VerifyingKey
+from ecdsa.keys import SigningKey
 
 from .config import Config
 
@@ -21,8 +21,8 @@ class Wallet:
 
     @property
     def address(self) -> str:
-        return b64encode(self.verifying_key.to_string(encoding="compressed"))
+        return b64encode(self.verifying_key.to_string(encoding="compressed")).decode()
 
     def sign(self, hash_str: str) -> str:
-        return b64encode(self.signing_key.sign(hash_str.encode(), hashfunc=Config.hashfunc))
+        return b64encode(self.signing_key.sign(hash_str.encode(), hashfunc=Config.hashfunc)).decode()
 

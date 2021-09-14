@@ -130,7 +130,6 @@ class Chain:
 
     def validate_block(self, block: Block) -> bool:
         if block.index == 0:
-            # TODO: Validate Genesis
             if block.hash != GENESIS_BLOCK.hash:
                 raise InvalidGenesisHashError("Genesis block hash is not hard coded hash")
             return True
