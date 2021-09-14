@@ -176,7 +176,7 @@ class Chain:
                 )
         return True
 
-    def block_penalty(self, block: Block) -> int:
+    def block_penalty(self, block: Block) -> float:
         return wallet_penalty(
             self.sum_tree,
             block.forger,
