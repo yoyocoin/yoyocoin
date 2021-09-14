@@ -21,7 +21,6 @@ from .exceptions import (
     LowTransactionCounterError,
     InvalidGenesisHashError,
     NonSequentialBlockError,
-    BlockChainError,
     InvalidSenderOrRecipient,
 )
 
