@@ -13,6 +13,19 @@ from .next_block_chooser import NextBlockChooser
 from .hardcoded import GENESIS_BLOCK, developer_address
 
 
+from .exceptions import (
+    ValidationError,
+    InsufficientBalanceError,
+    TooMachTransactionInBlockError,
+    InvalidSignatureError,
+    LowTransactionCounterError,
+    InvalidGenesisHashError,
+    NonSequentialBlockError,
+    BlockChainError,
+    InvalidSenderOrRecipient,
+)
+
+
 class Chain:
     _instance = None
 
@@ -96,37 +109,58 @@ class Chain:
     def validate_transaction(self, transaction: Transaction) -> bool:
         sender_wallet = self.get_chain_wallet(transaction.sender)
         if transaction.tx_counter <= sender_wallet.tx_counter:
-            return False
+            raise LowTransactionCounterError(
+                "Transaction tx_counter is lower then the wallet tx_counter",
+                wallet_counter=sender_wallet.tx_counter,
+                transaction_tx_counter=transaction.tx_counter,
+            )
         if transaction.amount < 0 or transaction.fee < Config.min_fee:
-            return False
+            raise ValidationError("Invalid transaction arguments")
         if not transaction.signature_verified():
-            return False
+            raise InvalidSignatureError("Invalid transaction signature")
         if transaction.amount + transaction.fee > sender_wallet.balance:
-            return False
+            raise InsufficientBalanceError(
+                "Sender wallet balance is too low",
+                current=sender_wallet.balance,
+                required=transaction.amount + transaction.fee
+            )
         if transaction.sender == transaction.recipient:
-            return False
+            raise InvalidSenderOrRecipient("Sender is recipient")
         return True
 
     def validate_block(self, block: Block) -> bool:
         if block.index == 0:
             # TODO: Validate Genesis
+            if block.hash != GENESIS_BLOCK.hash:
+                raise InvalidGenesisHashError("Genesis block hash is not hard coded hash")
             return True
         if block.index != self._last_block_index + 1:
-            return False
+            raise NonSequentialBlockError(
+                "Block index is not sequential",
+                current_index=block.index,
+                required_index=self._last_block_index + 1
+            )
         if block.previous_hash != self._last_block_hash:
-            return False
+            raise NonSequentialBlockError("Block previous hash isn't matching previous block hash")
         if not block.signature_verified():
-            return False
+            raise InvalidSignatureError("Invalid block signature")
         if len(block.transactions) > Config.max_transactions_per_block:
-            return False
+            raise TooMachTransactionInBlockError(
+                "too mach transactions in block",
+                tx_count=len(block.transactions),
+                max_transactions=Config.max_transactions_per_block,
+            )
 
         block_wallets = defaultdict(float)  # {str, float}
         for transaction in block.transactions:
-            if not self.validate_transaction(transaction):
-                return False
+            self.validate_transaction(transaction)
             block_wallets[transaction.sender] += transaction.amount + transaction.fee
             if block_wallets[transaction.sender] > self.chain_wallets[transaction.sender].balance:
-                return False
+                raise InsufficientBalanceError(
+                    "All sender transaction in the block are bigger from his balance",
+                    sum_spent=block_wallets[transaction.sender],
+                    current_balance=self.chain_wallets[transaction.sender].balance
+                )
         return True
 
     def block_penalty(self, block: Block) -> int:
@@ -138,8 +172,7 @@ class Chain:
         )
 
     def _process_block(self, block: Block):
-        if not self.validate_block(block):
-            raise  # TODO: create exception
+        self.validate_block(block)
         forger_wallet = self.get_chain_wallet(block.forger)
         fees = 0.0
         for transaction in block.transactions:

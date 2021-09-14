@@ -2,6 +2,7 @@ import unittest
 from time import sleep
 
 from blockchain import Actor, Chain, Config
+from blockchain.exceptions import ValidationError
 
 
 class MyActorTesterOnTestNet(unittest.TestCase):
@@ -31,25 +32,25 @@ class MyActorTesterOnTestNet(unittest.TestCase):
 
     def test_transaction_to_self(self):
         actor1 = Actor(secret_key="super_secret1!")
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValidationError):
             actor1.transfer_coins(recipient=actor1.address, amount=10)
 
     def test_negative_amount_transaction(self):
         actor1 = Actor(secret_key="super_secret1!")
         actor2 = Actor(secret_key="super_secret2!")
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValidationError):
             actor1.transfer_coins(recipient=actor2.address, amount=-10)
 
     def test_negative_fee_transaction(self):
         actor1 = Actor(secret_key="super_secret1!")
         actor2 = Actor(secret_key="super_secret2!")
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValidationError):
             actor1.transfer_coins(recipient=actor2.address, amount=10, fee=-1)
 
     def test_zero_fee_transaction(self):
         actor1 = Actor(secret_key="super_secret1!")
         actor2 = Actor(secret_key="super_secret2!")
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValidationError):
             actor1.transfer_coins(recipient=actor2.address, amount=10, fee=0)
 
     def test_actor_balance(self):
