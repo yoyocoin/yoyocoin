@@ -29,7 +29,7 @@ jobs:
       run: pytest --cov=src
 
     - name: flake8
-      run: flake8 src
+      run: flake8 src --max-line-length 127
       
     
     - name: mypy
