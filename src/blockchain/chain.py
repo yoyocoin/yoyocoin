@@ -90,7 +90,7 @@ class Chain:
         index = self._last_block_index + 1
         previous_hash = self._last_block_hash
         timestamp = time.time()
-        transactions = list(self._get_transactions(10))
+        transactions = list(self._get_transactions(Config.max_transactions_per_block))
         block = Block(
             index=index,
             previous_hash=previous_hash,
