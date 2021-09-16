@@ -1,5 +1,3 @@
 #!/bin/sh
 
-ipfs daemon --enable-pubsub-experiment
-
-python3.9
+ipfs daemon --enable-pubsub-experiment && python3.9
