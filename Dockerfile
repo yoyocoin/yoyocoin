@@ -1,8 +1,8 @@
 FROM python:3.9-slim-bullseye
 
 # copy all src code and scripts
-ADD src /
-ADD scripts /
+COPY src /
+COPY scripts /
 
 # install IPFS
 RUN ls
