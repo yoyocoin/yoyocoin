@@ -7,7 +7,6 @@ COPY . .
 RUN pip install -r requirements.txt
 
 # install IPFS
-RUN ls
 RUN chmod -R +x /scripts
 RUN /scripts/install-ipfs-private-network.sh
 
