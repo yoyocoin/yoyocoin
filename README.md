@@ -15,7 +15,7 @@ pip install -r requirements_dev.txt
 ```shell script
 pytest
 mypy src
-flake8 src
+flake8 src --max-line-length=127
 ```
 
 ##### test multiple python versions with tox
