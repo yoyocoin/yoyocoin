@@ -10,5 +10,5 @@ RUN chmod +x /scripts/install-ipfs-private-network.sh
 RUN /scripts/install-ipfs-private-network.sh
 
 # run ipfs node and yoyocoin node
-ENTRYPOINT ["ipfs", "daemon", "--enable-pubsub-experiment"]
+ENTRYPOINT ["ipfs daemon --enable-pubsub-experiment"]
 CMD ["python3.9 src/run.py"]
