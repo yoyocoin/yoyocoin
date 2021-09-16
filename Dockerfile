@@ -4,11 +4,14 @@ FROM python:3.9-slim-bullseye
 COPY src /src
 COPY scripts /scripts
 
+# install yoyocoin deps
+RUN pip install -r /src/requirements.txt
+
 # install IPFS
 RUN ls
-RUN chmod +x /scripts/install-ipfs-private-network.sh
+RUN chmod -R +x /scripts
 RUN /scripts/install-ipfs-private-network.sh
 
+
 # run ipfs node and yoyocoin node
-ENTRYPOINT ["ipfs daemon --enable-pubsub-experiment"]
-CMD ["python3.9 src/run.py"]
+CMD ["/scripts/run.sh"]
