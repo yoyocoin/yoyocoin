@@ -1,8 +1,7 @@
 FROM python:3.9-slim-bullseye
 
 # copy all src code and scripts
-COPY src /src
-COPY scripts /scripts
+COPY . .
 
 # install yoyocoin deps
 RUN pip install -r /src/requirements.txt
