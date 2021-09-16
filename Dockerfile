@@ -5,6 +5,7 @@ ADD src /
 ADD scripts /
 
 # install IPFS
+RUN ls
 RUN chmod +x /scripts/install-ipfs-private-network.sh
 RUN /scripts/install-ipfs-private-network.sh
 
