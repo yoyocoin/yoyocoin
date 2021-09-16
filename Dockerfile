@@ -4,7 +4,7 @@ FROM python:3.9-slim-bullseye
 COPY . .
 
 # install yoyocoin deps
-RUN pip install -r /src/requirements.txt
+RUN pip install -r requirements.txt
 
 # install IPFS
 RUN ls
