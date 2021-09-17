@@ -1,4 +1,3 @@
-import pytest
 from network.node import Node
 
 MOCK_SERVER_VERSION = {"Version": "0.9.1", "Commit": "", "Repo": "11", "System": "amd64/windows", "Golang": "go1.16.6"}

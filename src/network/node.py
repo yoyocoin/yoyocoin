@@ -1,10 +1,10 @@
 import json
 from urllib.parse import urljoin
 
-import requests
-from requests.adapters import HTTPAdapter
+import requests  # type: ignore
+from requests.adapters import HTTPAdapter  # type: ignore
 # noinspection PyUnresolvedReferences
-from requests.packages.urllib3.util.retry import Retry
+from requests.packages.urllib3.util.retry import Retry  # type: ignore
 
 from .config import Config
 
