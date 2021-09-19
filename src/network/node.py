@@ -43,20 +43,3 @@ class Node:
             files={"content": bytes_data},
             timeout=self.timeout,
         ).json()
-
-    def publish_to_topic(self, topic: str, data: dict):
-        json_data = json.dumps(data)
-        return self.ipfs_session.post(
-            urljoin(self.ipfs_api_base_url, "pubsub/pub"),
-            params={"arg": [topic, json_data]},
-            timeout=self.timeout,
-        ).text
-
-    def subscribe_to_topic(self, topic: str):
-        subscribe_stream = self.ipfs_session.post(
-            urljoin(self.ipfs_api_base_url, "pubsub/sub"),
-            params={"arg": topic},
-            stream=True,
-            timeout=self.timeout,
-        )
-        return subscribe_stream

@@ -18,8 +18,3 @@ def test_create_cid():
 def test_load_cid():
     node = Node()
     assert node.load_cid("QmX24kz2ykEuXHd3ojWFniok9peNyJDsAz4XCJfvurob8B") == GET_BLOCK_RESPONSE
-
-
-def test_publish_to_topic():
-    node = Node()
-    assert node.publish_to_topic("test", {"test": True}) == ''
