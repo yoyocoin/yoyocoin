@@ -3,4 +3,4 @@ __all__ = ["Config"]
 
 class Config:
     ipfs_node_base_url = "http://127.0.0.1:5001/api/v0/"
-    request_timeout = 5  # Seconds
+    ipfs_request_timeout = 5  # Seconds
