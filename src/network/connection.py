@@ -7,7 +7,7 @@ from socket import socket as Socket, AF_INET, SOCK_STREAM
 from loguru import logger
 
 from .config import Config
-from .exceptions import TimeoutException
+from .exceptions import TimeoutException, ConnectionClosed
 
 
 __all__ = ["Connection"]
@@ -21,13 +21,16 @@ class Connection(Thread):
         self.socket = socket
         self.address = address
         self._recv_queue = recv_queue
-        self._stop = False
+        self._run = True
 
         self._waiting = False
         self._response = None
 
         self.socket.settimeout(None)
         self.start()
+
+    def is_alive(self) -> bool:
+        return super().is_alive() and self._run
 
     @classmethod
     def connect(cls, address: Address, recv_queue: Queue):
@@ -50,10 +53,12 @@ class Connection(Thread):
             sleep(0.1)
 
     def send(self, message: bytes):
+        if not self.is_alive():
+            raise ConnectionClosed()
         self.socket.send(message)
         logger.debug(f"sent {message.decode()}")
 
-    def get(self, request: bytes):
+    def get(self, request: bytes) -> bytes:
         self.send(request)
         self._waiting = True
         self._wait(timeout=20)
@@ -62,7 +67,7 @@ class Connection(Thread):
         return response
 
     def run(self):
-        while not self._stop:
+        while self._run:
             try:
                 data = self.socket.recv(Config.socket_max_buffer_size)
                 logger.debug(f"received {data}")
@@ -78,8 +83,8 @@ class Connection(Thread):
             self._recv_queue.put((self.address, data))
 
     def close(self):
-        if self._stop:  # All ready stop
+        if not self._run:  # All ready stop
             return
         logger.debug(f"Closing connection {self.address}")
-        self._stop = True
+        self._run = False
         self.socket.close()

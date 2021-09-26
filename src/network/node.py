@@ -9,7 +9,7 @@ from .exceptions import TimeoutException
 from .config import Config
 from .server import Server
 from .connection import Connection
-from .protocol_handler import ProtocolHandler
+from .protocol_handler import InternalProtocolHandler
 from .protocols import BootstrapProtocol
 from .message import Message
 
@@ -19,15 +19,39 @@ Callback = Callable[[Dict], None]
 
 
 class Node:
-    def __init__(self, on_network_broadcast: Callback):
-        self._on_network_broadcast_callback: Callback = on_network_broadcast
+    def __init__(self, on_message: Callback):
+        self._on_network_broadcast_callback: Callback = on_message
         self._active_connections: List = []
         self._initialized: bool = False
-        self._server = Server(node=self)
         self._connections: Dict[Address, Connection] = {}
+        self._message_queue: Queue = Queue(maxsize=200)
+        self._protocol_handler = InternalProtocolHandler(
+            protocols=[BootstrapProtocol(self)],
+            messages_queue=self._message_queue,
+            external_message_callback=on_message
+        )
+        self._server = Server(
+            message_queue=self._message_queue,
+            new_connection_callback=self._register_connection
+        )
+
         self.peer_list: List[Address] = []
-        self.message_queue: Queue = Queue(maxsize=200)
-        self._protocol_handler = ProtocolHandler(protocols=[BootstrapProtocol(self)], messages_queue=self.message_queue)
+
+    @property
+    def connected_peers(self) -> List[Address]:
+        ded_connections_address = []
+        for address, connection in self._connections.items():
+            if not connection.is_alive():
+                ded_connections_address.append(address)
+        for address in ded_connections_address:
+            del self._connections[address]
+        return list(self._connections.keys())
+
+    def get_connection(self, address: Address) -> Connection:
+        connection = self._connections[address]
+        if not connection.is_alive():
+            raise KeyError(address)
+        return connection
 
     def _load_bootstrap_nodes(self) -> List[Address]:
         """
@@ -54,7 +78,7 @@ class Node:
         if node_address == (Config.node_listen_host, Config.node_listen_port):
             return []
         try:
-            bootstrap_node = Connection.connect(node_address, recv_queue=self.message_queue)
+            bootstrap_node = Connection.connect(node_address, recv_queue=self._message_queue)
         except TimeoutException:
             return []
         try:
@@ -88,7 +112,7 @@ class Node:
             random_node: Address = choice(peers_list)
             if random_node not in try_nodes:
                 try:
-                    connection = Connection.connect(random_node, self.message_queue)
+                    connection = Connection.connect(random_node, self._message_queue)
                 except TimeoutException:
                     peers_list.remove(random_node)
                 else:
@@ -115,19 +139,7 @@ class Node:
         peers_list = self._connect_to_random_peers(peers_list)
         return peers_list
 
-    def _initialize(self):
-        """
-        Initialize node
-        1. create active nodes list
-        2. listen to network broadcast (run http server)
-        :return:
-        """
-        pass
-
-    def get_connection(self, address: Address) -> Connection:
-        return self._connections[address]
-
-    def add_connection(self, connection: Connection) -> None:
+    def _register_connection(self, connection: Connection) -> None:
         """
         Called by server when new connection created (socket connected)
         :param connection: socket connection object
@@ -156,5 +168,5 @@ class Node:
 
 
 if __name__ == "__main__":
-    n = Node(on_network_broadcast=lambda x: print("broadcast:", x))
+    n = Node(on_message=lambda x: print("broadcast:", x))
     n.start()

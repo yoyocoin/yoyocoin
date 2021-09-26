@@ -16,8 +16,13 @@ def idle():
 def main():
     ip = argv[1]
     Config.node_listen_host = ip
-    n = Node(on_network_broadcast=lambda x: print("broadcast", x))
+    n = Node(on_message=lambda x: print("broadcast", x))
     n.start()
+    sleep(20)
+    if n.connected_peers:
+        print(n.connected_peers)
+        connection = n.get_connection(n.connected_peers[0])
+        connection.send(f"hello from {ip}".encode())
     idle()
 
 
