@@ -24,7 +24,6 @@ class BootstrapProtocol(Protocol):
         connection.send(Message({"peers": random_peers}).to_bytes())
 
     def handle(self, sender, message: Message):
-        print("bootstrap protocol", sender, message.dict_message)
         action = message.dict_message.get("action", None)
         if action == "active_nodes_list":
             self._handle_active_nodes_request(sender, message.dict_message.get("limit"))

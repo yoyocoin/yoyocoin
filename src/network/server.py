@@ -23,5 +23,4 @@ class Server(Thread):
             if self._connected_peers < Config.max_inbound_connections:
                 new_socket, address = self.listen_socket.accept()
                 new_connection = Connection(new_socket, address, self.node.message_queue)
-                new_connection.start()
                 self.node.add_connection(new_connection)

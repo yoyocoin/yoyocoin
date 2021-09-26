@@ -6,8 +6,11 @@ from network.config import Config
 
 
 def idle():
-    while True:
-        sleep(1)
+    try:
+        while True:
+            sleep(1)
+    except KeyboardInterrupt:
+        pass
 
 
 def main():

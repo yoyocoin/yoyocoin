@@ -27,7 +27,6 @@ class ProtocolHandler(Thread):
             connection_address, message_bytes = self.messages_queue.get()
             try:
                 message = Message.from_bytes(message_bytes)
-                print("protocol handler", connection_address, message.dict_message)
                 self._handle_message(connection_address, message)
             except Exception as EX:
                 print("protocol handler error", EX)

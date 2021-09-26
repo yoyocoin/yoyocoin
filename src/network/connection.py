@@ -24,16 +24,15 @@ class Connection(Thread):
         self._waiting = False
         self._response = None
 
+        self.socket.settimeout(None)
+        self.start()
+
     @classmethod
     def connect(cls, address: Address, recv_queue: Queue):
         new_socket = Socket(AF_INET, SOCK_STREAM)
         new_socket.settimeout(Config.socket_connect_timeout)
         new_socket.connect(address)
-        print("connected to", address)
-        connection = cls(new_socket, address, recv_queue)
-        new_socket.settimeout(None)
-        connection.start()
-        return connection
+        return cls(new_socket, address, recv_queue)
 
     def _wait(self, timeout: int):
         """
@@ -48,7 +47,6 @@ class Connection(Thread):
             sleep(0.1)
 
     def send(self, message: bytes):
-        print("send", message, self.address)
         self.socket.send(message)
 
     def get(self, request: bytes):
@@ -64,12 +62,10 @@ class Connection(Thread):
             try:
                 data = self.socket.recv(Config.socket_max_buffer_size)
             except (ConnectionError, OSError) as EX:
-                print(EX)
                 data = b''
             if not data:
                 self.close()
                 break
-            print("recv", data, self.address, self._waiting)
             if self._waiting:
                 self._response = data
                 self._waiting = False
@@ -79,6 +75,5 @@ class Connection(Thread):
     def close(self):
         if self._stop:  # All ready stop
             return
-        print("Closing connection", self.address)
         self._stop = True
         self.socket.close()

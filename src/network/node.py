@@ -81,7 +81,7 @@ class Node:
         :return: updated list of active nodes
         """
         try_nodes = set()
-        while len(self._connections) < Config.max_outbound_connections:
+        while len(self._connections) < Config.max_outbound_connections and len(try_nodes) < len(peers_list):
             random_node = tuple(choice(peers_list))
             if random_node not in try_nodes:
                 try:
@@ -128,7 +128,6 @@ class Node:
         :param connection: socket connection object
         :return: None
         """
-        print(connection)
         self._connections[connection.address] = connection
 
     def broadcast(self, data: bytes):
