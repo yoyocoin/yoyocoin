@@ -1,8 +1,8 @@
 from sys import argv
 from time import sleep
 
-from network.node import Node  # type: ignore
-from network.config import Config  # type: ignore
+from p2p_network.node import Node  # type: ignore
+from p2p_network.config import Config  # type: ignore
 
 
 def idle():
