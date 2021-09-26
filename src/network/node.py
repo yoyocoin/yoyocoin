@@ -1,11 +1,11 @@
 from os import path
-from typing import List, Tuple, Callable, Dict
+from typing import List, Tuple, Callable, Dict, Iterable
 from queue import Queue
 from random import choice
 
 from loguru import logger
 
-from .exception import TimeoutException
+from .exceptions import TimeoutException
 from .config import Config
 from .server import Server
 from .connection import Connection
@@ -26,7 +26,7 @@ class Node:
         self._server = Server(node=self)
         self._connections: Dict[Address, Connection] = {}
         self.peer_list: List[Address] = []
-        self.message_queue = Queue(maxsize=200)
+        self.message_queue: Queue = Queue(maxsize=200)
         self._protocol_handler = ProtocolHandler(protocols=[BootstrapProtocol(self)], messages_queue=self.message_queue)
 
     def _load_bootstrap_nodes(self) -> List[Address]:
@@ -45,7 +45,7 @@ class Node:
                 ]
         return Config.bootstrap_nodes_address
 
-    def _load_nodes_list_from_bootstrap_node(self, node_address: Address) -> List[Address]:
+    def _load_nodes_list_from_bootstrap_node(self, node_address: Address) -> Iterable[Address]:
         """
         Get nodes list from bootstrap node with http request
         :param node_address: the bootstrap node address
@@ -67,13 +67,14 @@ class Node:
             bootstrap_node.close()
         message = Message.from_bytes(response)
         peer_list = message.dict_message.get("peers", [])
+        peer_list = map(lambda x: tuple(x), peer_list)
         return peer_list
 
     def _get_peers_list(self, bootstrap_nodes_address: List[Address]) -> List[Address]:
         nodes_list: List[Address] = []
         for bootstrap_node_address in bootstrap_nodes_address:
             network_nodes_address = self._load_nodes_list_from_bootstrap_node(bootstrap_node_address)
-            nodes_list.extend(map(tuple, network_nodes_address))
+            nodes_list.extend(network_nodes_address)
         return nodes_list
 
     def _connect_to_random_peers(self, peers_list: List[Address]) -> List[Address]:
@@ -82,9 +83,9 @@ class Node:
         :param peers_list: list of peers address
         :return: updated list of active nodes
         """
-        try_nodes = set()
+        try_nodes: set = set()
         while len(self._connections) < Config.max_outbound_connections and len(try_nodes) < len(peers_list):
-            random_node = tuple(choice(peers_list))
+            random_node: Address = choice(peers_list)
             if random_node not in try_nodes:
                 try:
                     connection = Connection.connect(random_node, self.message_queue)
@@ -152,6 +153,7 @@ class Node:
         self.peer_list = self._connect_to_network()
         self._server.start()  # Start server thread
         self._protocol_handler.start()  # Start handling input messages
+
 
 if __name__ == "__main__":
     n = Node(on_network_broadcast=lambda x: print("broadcast:", x))

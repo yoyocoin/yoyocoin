@@ -31,5 +31,5 @@ class ProtocolHandler(Thread):
             try:
                 message = Message.from_bytes(message_bytes)
                 self._handle_message(connection_address, message)
-            except Exception as EX:
+            except Exception:
                 logger.exception("Protocol handler exception")

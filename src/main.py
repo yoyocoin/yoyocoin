@@ -1,8 +1,8 @@
 from sys import argv
 from time import sleep
 
-from network.node import Node
-from network.config import Config
+from network.node import Node  # type: ignore
+from network.config import Config  # type: ignore
 
 
 def idle():
@@ -19,6 +19,7 @@ def main():
     n = Node(on_network_broadcast=lambda x: print("broadcast", x))
     n.start()
     idle()
+
 
 if __name__ == "__main__":
     main()

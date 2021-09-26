@@ -1,5 +1,5 @@
 from time import sleep
-from network.connection import Connection
+from network.connection import Connection  # type: ignore
 
 
 def main():
@@ -7,6 +7,7 @@ def main():
     connection.send(b"hello it is working")
     sleep(5)
     connection.close()
+
 
 if __name__ == "__main__":
     main()

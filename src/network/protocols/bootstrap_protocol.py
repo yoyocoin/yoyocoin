@@ -1,3 +1,4 @@
+from typing import Optional
 import random
 
 from ..config import Config
@@ -6,14 +7,16 @@ from ..message import Message
 
 
 class BootstrapProtocol(Protocol):
-    name = "bootstrap"
+    name: str = "bootstrap"
 
     def __init__(self, node):
         super().__init__(node)
         self.active_nodes = set()
         self.active_nodes.add((Config.node_listen_host, Config.node_listen_port))
 
-    def _add_active_node_address(self, address: tuple):
+    def _add_active_node_address(self, address: Optional[tuple]):
+        if address is None:
+            return
         self.active_nodes.add(address)
         if len(self.active_nodes) > 20000:
             self.active_nodes.pop()
@@ -28,7 +31,7 @@ class BootstrapProtocol(Protocol):
         if action == "active_nodes_list":
             self._handle_active_nodes_request(sender, message.dict_message.get("limit"))
         elif action == "active_node_address":
-            self._add_active_node_address(message.dict_message.get("address"))
+            self._add_active_node_address(message.dict_message.get("address", None))
 
     @classmethod
     def create_active_node_address_message(cls, address) -> Message:

@@ -7,7 +7,7 @@ from socket import socket as Socket, AF_INET, SOCK_STREAM
 from loguru import logger
 
 from .config import Config
-from .exception import TimeoutException
+from .exceptions import TimeoutException
 
 
 __all__ = ["Connection"]
@@ -51,7 +51,7 @@ class Connection(Thread):
 
     def send(self, message: bytes):
         self.socket.send(message)
-        logger.debug(f"sent {message}")
+        logger.debug(f"sent {message.decode()}")
 
     def get(self, request: bytes):
         self.send(request)
@@ -66,7 +66,7 @@ class Connection(Thread):
             try:
                 data = self.socket.recv(Config.socket_max_buffer_size)
                 logger.debug(f"received {data}")
-            except (ConnectionError, OSError) as EX:
+            except (ConnectionError, OSError):
                 data = b''
             if not data:
                 self.close()

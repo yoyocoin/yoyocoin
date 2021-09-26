@@ -3,7 +3,7 @@ from .message import Message
 
 
 class Protocol(ABC):
-    name = None  # Protocol name (to find related message)
+    name: str = 'protocol name'  # Protocol name (for finding related messages)
 
     def __init__(self, node):
         self.node = node
