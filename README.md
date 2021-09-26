@@ -5,6 +5,9 @@ PoS crypto coin over ipfs distributed storage network (with new consensus protoc
 
 
 
+## WORK IN PROGGRESS
+
+
 #### Developer section
 ##### install dev requirements
 ```shell script
