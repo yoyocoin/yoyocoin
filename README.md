@@ -5,7 +5,8 @@ PoS crypto coin over ipfs distributed storage network (with new consensus protoc
 
 
 
-## WORK IN PROGGRESS
+## WORK IN PROGGRESS!!
+this project is a work in progress and dose not ready for production
 
 
 #### Developer section
