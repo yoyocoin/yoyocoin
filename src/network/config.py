@@ -10,7 +10,7 @@ class Config:
     max_outbound_connections = 16
     max_inbound_connections = 32
 
-    bootstrap_nodes_address = [("127.0.0.1", 6001)]
+    bootstrap_nodes_address = [("127.0.0.2", 6001)]
     bootstrap_list_request_max = 200
     bootstrap_request_timeout = 2  # Seconds
 

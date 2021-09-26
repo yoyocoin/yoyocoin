@@ -1,5 +1,8 @@
+from sys import argv
 from time import sleep
+
 from network.node import Node
+from network.config import Config
 
 
 def idle():
@@ -8,6 +11,8 @@ def idle():
 
 
 def main():
+    ip = argv[1]
+    Config.node_listen_host = ip
     n = Node(on_network_broadcast=lambda x: print("broadcast", x))
     n.start()
     idle()
