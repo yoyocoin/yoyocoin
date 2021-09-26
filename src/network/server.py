@@ -2,6 +2,8 @@ from time import sleep
 from threading import Thread
 from socket import socket, AF_INET, SOCK_STREAM
 
+from loguru import logger
+
 from .config import Config
 from .connection import Connection
 
@@ -18,6 +20,7 @@ class Server(Thread):
         self.listen_socket.listen(5)
 
     def run(self):
+        logger.info(f"Started listening for connections on {Config.node_listen_host}:{Config.node_listen_port}")
         while not self._stop:
             sleep(1)
             if self._connected_peers < Config.max_inbound_connections:

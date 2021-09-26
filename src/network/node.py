@@ -3,6 +3,8 @@ from typing import List, Tuple, Callable, Dict
 from queue import Queue
 from random import choice
 
+from loguru import logger
+
 from .exception import TimeoutException
 from .config import Config
 from .server import Server
@@ -102,10 +104,12 @@ class Node:
         :return: list of active connected nodes
         """
         bootstrap_nodes_address = self._load_bootstrap_nodes()
+        logger.debug(f"loaded bootstrap nodes {bootstrap_nodes_address}")
         peers_list: List[Address] = self._get_peers_list(bootstrap_nodes_address)
+        logger.debug(f"found {len(peers_list)} peers")
 
         if not peers_list:
-            print("Can't find peers")
+            logger.info("Cant find any peers")
             return []
         peers_list = self._connect_to_random_peers(peers_list)
         return peers_list
@@ -128,6 +132,7 @@ class Node:
         :param connection: socket connection object
         :return: None
         """
+        logger.debug(f"New connection from {connection.address}")
         self._connections[connection.address] = connection
 
     def broadcast(self, data: bytes):

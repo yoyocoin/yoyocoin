@@ -2,6 +2,8 @@ from typing import List
 from threading import Thread
 from queue import Queue
 
+from loguru import logger
+
 from .message import Message
 from .protocol import Protocol
 
@@ -23,10 +25,11 @@ class ProtocolHandler(Thread):
             pass
 
     def run(self):
+        logger.debug("Protocol handler thread started")
         while not self._stop:
             connection_address, message_bytes = self.messages_queue.get()
             try:
                 message = Message.from_bytes(message_bytes)
                 self._handle_message(connection_address, message)
             except Exception as EX:
-                print("protocol handler error", EX)
+                logger.exception("Protocol handler exception")
