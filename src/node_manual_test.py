@@ -1,8 +1,7 @@
 from sys import argv
 from time import sleep
 
-from p2p_network.node import Node  # type: ignore
-from p2p_network.config import Config  # type: ignore
+from yoyocoin_node import YoyocoinNode
 
 
 def idle():
@@ -15,13 +14,12 @@ def idle():
 
 def main():
     ip = argv[1]
-    Config.node_listen_host = ip
-    n = Node(on_message=lambda x: print("broadcast", x))
+    n = YoyocoinNode(host=ip)
     n.start()
     sleep(20)
-    if n.connected_peers:
-        print(n.connected_peers)
-        connection = n.get_connection(n.connected_peers[0])
+    if n.node.connected_peers:
+        print(n.node.connected_peers)
+        connection = n.node.get_connection(n.node.connected_peers[0])
         connection.send(f"hello from {ip}".encode())
     idle()
 

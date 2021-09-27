@@ -7,7 +7,9 @@ from socket import socket as Socket, AF_INET, SOCK_STREAM
 from loguru import logger
 
 from .config import Config
+from .message import Message
 from .exceptions import TimeoutException, ConnectionClosed
+from .protocols import VersionProtocol
 
 
 __all__ = ["Connection"]
@@ -20,6 +22,7 @@ class Connection(Thread):
         super().__init__(daemon=True, name=f"Connection {address}")
         self.socket = socket
         self.address = address
+        self.version = None
         self._recv_queue = recv_queue
         self._run = True
 
@@ -28,6 +31,7 @@ class Connection(Thread):
 
         self.socket.settimeout(None)
         self.start()
+        self.send(VersionProtocol.create_version_message().to_bytes())
 
     def is_alive(self) -> bool:
         return super().is_alive() and self._run

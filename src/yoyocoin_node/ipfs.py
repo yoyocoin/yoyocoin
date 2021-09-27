@@ -6,7 +6,7 @@ from requests.adapters import HTTPAdapter  # type: ignore
 # noinspection PyUnresolvedReferences
 from requests.packages.urllib3.util.retry import Retry  # type: ignore
 
-from .config import Config
+from p2p_network.config import Config
 
 
 class Ipfs:

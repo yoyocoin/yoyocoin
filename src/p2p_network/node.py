@@ -10,7 +10,7 @@ from .config import Config
 from .server import Server
 from .connection import Connection
 from .protocol_handler import InternalProtocolHandler
-from .protocols import BootstrapProtocol
+from .protocols import BootstrapProtocol, VersionProtocol
 from .message import Message
 
 
@@ -19,14 +19,46 @@ Callback = Callable[[Dict], None]
 
 
 class Node:
-    def __init__(self, on_message: Callback):
+    def __init__(
+            self,
+            on_message: Callback,
+            bootstrap_list_file_path: str = None,
+            max_outbound_connections: int = None,
+            max_inbound_connections: int = None,
+            bootstrap_nodes_address: List[Address] = None,
+            listen_host: str = None,
+            listen_port: int = None,
+            socket_connect_timeout: int = None,  # Seconds
+            socket_request_timeout: int = None,  # Seconds
+            socket_max_buffer_size: int = None,  # 2Mb
+    ):
+
+        if bootstrap_list_file_path is not None:
+            Config.bootstrap_list_file_path = bootstrap_list_file_path
+        if max_outbound_connections is not None:
+            Config.max_outbound_connections = max_outbound_connections
+        if max_inbound_connections is not None:
+            Config.max_inbound_connections = max_inbound_connections
+        if bootstrap_nodes_address is not None:
+            Config.bootstrap_nodes_address = bootstrap_nodes_address
+        if listen_host is not None:
+            Config.node_listen_host = listen_host
+        if listen_port is not None:
+            Config.node_listen_port = listen_port
+        if socket_connect_timeout is not None:
+            Config.socket_connect_timeout = socket_connect_timeout
+        if socket_request_timeout is not None:
+            Config.socket_request_timeout = socket_request_timeout
+        if socket_max_buffer_size is not None:
+            Config.socket_max_buffer_size = socket_max_buffer_size
+
         self._on_network_broadcast_callback: Callback = on_message
         self._active_connections: List = []
         self._initialized: bool = False
         self._connections: Dict[Address, Connection] = {}
         self._message_queue: Queue = Queue(maxsize=200)
         self._protocol_handler = InternalProtocolHandler(
-            protocols=[BootstrapProtocol(self)],
+            protocols=[BootstrapProtocol(self), VersionProtocol(self)],
             messages_queue=self._message_queue,
             external_message_callback=on_message
         )
@@ -147,15 +179,6 @@ class Node:
         """
         logger.debug(f"New connection from {connection.address}")
         self._connections[connection.address] = connection
-
-    def broadcast(self, data: bytes):
-        """
-        Broadcast the data to the network
-        :param data:
-        :return:
-        """
-        for connection in self._connections.values():
-            connection.send(data)
 
     def start(self):
         """
