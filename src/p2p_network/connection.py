@@ -3,6 +3,7 @@ from queue import Queue
 from threading import Thread
 from typing import Tuple
 from socket import socket as Socket, AF_INET, SOCK_STREAM
+from hashlib import sha256
 
 from loguru import logger
 
@@ -15,6 +16,7 @@ from .protocols import VersionProtocol
 __all__ = ["Connection"]
 
 Address = Tuple[str, int]
+MAX_SAVED_HASH = 10000
 
 
 class Connection(Thread):
@@ -28,6 +30,7 @@ class Connection(Thread):
 
         self._waiting = False
         self._response = None
+        self.internal_sent_messages_hash = dict()
 
         self.socket.settimeout(None)
         self.start()

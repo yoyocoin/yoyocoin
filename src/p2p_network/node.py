@@ -1,7 +1,8 @@
 from os import path
-from typing import List, Tuple, Callable, Dict, Iterable
+from typing import List, Tuple, Callable, Dict, Iterable, Set
 from queue import Queue
 from random import choice
+from time import time
 
 from loguru import logger
 
@@ -10,12 +11,15 @@ from .config import Config
 from .server import Server
 from .connection import Connection
 from .protocol_handler import InternalProtocolHandler
+from .heartbeat_service import HeartbeatService
 from .protocols import BootstrapProtocol, VersionProtocol
 from .message import Message
 
 
 Address = Tuple[str, int]
 Callback = Callable[[Dict], None]
+RELAY_HASH_STOP = 60
+MAX_RELAY_HASH_SAVE = 10000
 
 
 class Node:
@@ -52,13 +56,17 @@ class Node:
         if socket_max_buffer_size is not None:
             Config.socket_max_buffer_size = socket_max_buffer_size
 
+        self.my_address = (Config.node_listen_host, Config.node_listen_port)
+        self.peer_list: Set[Address] = {self.my_address}
+        self.protocols = [BootstrapProtocol(self), VersionProtocol(self)]
+
         self._on_network_broadcast_callback: Callback = on_message
         self._active_connections: List = []
         self._initialized: bool = False
         self._connections: Dict[Address, Connection] = {}
         self._message_queue: Queue = Queue(maxsize=200)
         self._protocol_handler = InternalProtocolHandler(
-            protocols=[BootstrapProtocol(self), VersionProtocol(self)],
+            protocols=self.protocols,
             messages_queue=self._message_queue,
             external_message_callback=on_message
         )
@@ -66,8 +74,7 @@ class Node:
             message_queue=self._message_queue,
             new_connection_callback=self._register_connection
         )
-
-        self.peer_list: List[Address] = []
+        self._heartbeat_service = HeartbeatService(self)
 
     @property
     def connected_peers(self) -> List[Address]:
@@ -82,6 +89,7 @@ class Node:
     def get_connection(self, address: Address) -> Connection:
         connection = self._connections[address]
         if not connection.is_alive():
+            del self._connections[address]
             raise KeyError(address)
         return connection
 
@@ -180,14 +188,38 @@ class Node:
         logger.debug(f"New connection from {connection.address}")
         self._connections[connection.address] = connection
 
+    def _broadcast(self, message: Message, exclude: List[Address] = None):
+        if exclude is None:
+            exclude = []
+        if not message.is_valid():
+            logger.debug("Trying to broadcast invalid message")
+            return
+        for address in self.connected_peers:
+            if address in exclude:
+                continue
+            connection = self.get_connection(address)
+            if message.hash in connection.internal_sent_messages_hash:
+                if not time() - connection.internal_sent_messages_hash[message.hash]['sent_at'] > RELAY_HASH_STOP:
+                    continue
+                connection.internal_sent_messages_hash.pop(message.hash)
+            try:
+                connection.send(message.to_bytes())
+            except ConnectionError:
+                pass
+            else:
+                connection.internal_sent_messages_hash[message.hash] = {"sent_at": time()}
+                if len(connection.internal_sent_messages_hash) > MAX_RELAY_HASH_SAVE:
+                    connection.internal_sent_messages_hash.popitem()
+
     def start(self):
         """
         Start the node:
         connect to nodes and listen for network broadcast
         """
-        self.peer_list = self._connect_to_network()
+        self.peer_list.update(self._connect_to_network())
         self._server.start()  # Start server thread
         self._protocol_handler.start()  # Start handling input messages
+        self._heartbeat_service.start()
 
 
 if __name__ == "__main__":

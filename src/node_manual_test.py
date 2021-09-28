@@ -18,11 +18,9 @@ def main():
     n.start()
     sleep(20)
     if n.node.connected_peers:
-        print(n.node.connected_peers)
         connection = n.node.get_connection(n.node.connected_peers[0])
         connection.send(f"hello from {ip}".encode())
     idle()
-
 
 if __name__ == "__main__":
     main()
