@@ -3,12 +3,10 @@ from queue import Queue
 from threading import Thread
 from typing import Tuple
 from socket import socket as Socket, AF_INET, SOCK_STREAM
-from hashlib import sha256
 
 from loguru import logger
 
 from .config import Config
-from .message import Message
 from .exceptions import TimeoutException, ConnectionClosed
 from .protocols import VersionProtocol
 
@@ -16,7 +14,6 @@ from .protocols import VersionProtocol
 __all__ = ["Connection"]
 
 Address = Tuple[str, int]
-MAX_SAVED_HASH = 10000
 
 
 class Connection(Thread):

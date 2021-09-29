@@ -12,7 +12,7 @@ from .server import Server
 from .connection import Connection
 from .protocol_handler import InternalProtocolHandler
 from .heartbeat_service import HeartbeatService
-from .protocols import BootstrapProtocol, VersionProtocol
+from .protocols import BootstrapProtocol, VersionProtocol, PingProtocol
 from .message import Message
 
 
@@ -58,7 +58,7 @@ class Node:
 
         self.my_address = (Config.node_listen_host, Config.node_listen_port)
         self.peer_list: Set[Address] = {self.my_address}
-        self.protocols = [BootstrapProtocol(self), VersionProtocol(self)]
+        self.protocols = [BootstrapProtocol(self), VersionProtocol(self), PingProtocol(self)]
 
         self._on_network_broadcast_callback: Callback = on_message
         self._active_connections: List = []

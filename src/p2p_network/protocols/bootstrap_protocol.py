@@ -9,7 +9,7 @@ class BootstrapProtocol(Protocol):
     name: str = "bootstrap"
 
     def __init__(self, node):
-        super().__init__(node, require_heartbeat=True, heartbeat_interval=60*60)
+        super().__init__(node, require_heartbeat=True, heartbeat_interval=60)
 
     def _add_active_node_address(self, address: Optional[list]):
         if address is None:
