@@ -1,14 +1,10 @@
 import socket
 
 
-__all__ = ["TimeoutException", "InvalidMessageFormat", "ConnectionClosed"]
+__all__ = ["TimeoutException", "ConnectionClosed"]
 
 
 TimeoutException = (socket.timeout, TimeoutError)
-
-
-class InvalidMessageFormat(ValueError):
-    pass
 
 
 class ConnectionClosed(ConnectionError):

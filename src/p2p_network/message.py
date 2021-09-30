@@ -2,8 +2,6 @@ import json
 import base64
 from hashlib import sha256
 
-from .exceptions import InvalidMessageFormat
-
 __all__ = ["Message"]
 
 
