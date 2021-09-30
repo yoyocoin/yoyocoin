@@ -30,7 +30,7 @@ class Connection(Thread):
         self._run = True
 
         self._waiting = False
-        self._response: Union[bytes, None] = None
+        self._response: bytes = None
         self.internal_sent_messages_hash: Dict = dict()
 
         self.socket.settimeout(None)
