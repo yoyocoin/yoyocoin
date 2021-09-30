@@ -30,7 +30,7 @@ class Connection(Thread):
         self._run = True
 
         self._waiting = False
-        self._response: bytes = None
+        self._response: bytes = b''
         self.internal_sent_messages_hash: Dict = dict()
 
         self.socket.settimeout(None)
@@ -74,7 +74,7 @@ class Connection(Thread):
             self.socket.settimeout(None)
         self._waiting = True
         self._wait(timeout=REQUEST_TIMEOUT)
-        response, self._response = self._response, None
+        response, self._response = self._response, b''
         return response
 
     def run(self):
