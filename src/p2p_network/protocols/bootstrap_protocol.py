@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Union
 import random
 
 from ..protocol import Protocol
@@ -11,7 +11,7 @@ class BootstrapProtocol(Protocol):
     def __init__(self, node):
         super().__init__(node, require_heartbeat=True, heartbeat_interval=60)
 
-    def _add_active_node_address(self, address: Optional[list]):
+    def _add_active_node_address(self, address: Union[list, None]):
         if address is None:
             return
         address = tuple(address)

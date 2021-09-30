@@ -7,7 +7,7 @@ from socket import socket as Socket, AF_INET, SOCK_STREAM
 from loguru import logger
 
 from .config import Config
-from .exceptions import TimeoutException, ConnectionClosed
+from .exceptions import ConnectionClosed
 from .protocols import VersionProtocol
 
 
@@ -17,11 +17,12 @@ Address = Tuple[str, int]
 
 
 class Connection(Thread):
-    def __init__(self, socket: Socket, address: Address, recv_queue: Queue):
+    def __init__(self, socket: Socket, address: Address, recv_queue: Queue, inbound: bool = False):
         super().__init__(daemon=True, name=f"Connection {address}")
         self.socket = socket
         self.address = address
         self.version = None
+        self.is_inbound = inbound
         self._recv_queue = recv_queue
         self._run = True
 
@@ -53,28 +54,27 @@ class Connection(Thread):
         wait_start = time()
         while self._waiting:
             if time() - wait_start > timeout:
-                raise TimeoutException()
+                raise TimeoutError()
             sleep(0.1)
 
     def send(self, message: bytes):
         if not self.is_alive():
             raise ConnectionClosed()
         self.socket.send(message)
-        logger.debug(f"sent {message.decode()}")
+        # logger.debug(f"sent {message.decode()}")
 
     def get(self, request: bytes) -> bytes:
         self.send(request)
         self._waiting = True
         self._wait(timeout=20)
-        response = self._response
-        self._response = None
+        response, self._response = self._response, None
         return response
 
     def run(self):
         while self._run:
             try:
                 data = self.socket.recv(Config.socket_max_buffer_size)
-                logger.debug(f"received {data}")
+                # logger.debug(f"received {data}")
             except (ConnectionError, OSError):
                 data = b''
             if not data:

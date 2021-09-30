@@ -58,7 +58,7 @@ class Node:
 
         self.my_address = (Config.node_listen_host, Config.node_listen_port)
         self.peer_list: Set[Address] = {self.my_address}
-        self.protocols = [BootstrapProtocol(self), VersionProtocol(self), PingProtocol(self)]
+        self._protocols = [BootstrapProtocol(self), VersionProtocol(self), PingProtocol(self)]
 
         self._on_network_broadcast_callback: Callback = on_message
         self._active_connections: List = []
@@ -66,7 +66,7 @@ class Node:
         self._connections: Dict[Address, Connection] = {}
         self._message_queue: Queue = Queue(maxsize=200)
         self._protocol_handler = InternalProtocolHandler(
-            protocols=self.protocols,
+            protocols=self._protocols,
             messages_queue=self._message_queue,
             external_message_callback=on_message
         )
@@ -74,7 +74,9 @@ class Node:
             message_queue=self._message_queue,
             new_connection_callback=self._register_connection
         )
-        self._heartbeat_service = HeartbeatService(self)
+        self._heartbeat_service = HeartbeatService(
+            node_heartbeat_callback=self._heartbeat, interval=Config.heartbeat_interval
+        )
 
     @property
     def connected_peers(self) -> List[Address]:
@@ -134,50 +136,48 @@ class Node:
         peer_list = map(lambda x: tuple(x), peer_list)
         return peer_list
 
-    def _get_peers_list(self, bootstrap_nodes_address: List[Address]) -> List[Address]:
-        nodes_list: List[Address] = []
+    def _get_peers_list(self, bootstrap_nodes_address: List[Address]) -> Set[Address]:
+        nodes_list: Set[Address] = set()
         for bootstrap_node_address in bootstrap_nodes_address:
             network_nodes_address = self._load_nodes_list_from_bootstrap_node(bootstrap_node_address)
-            nodes_list.extend(network_nodes_address)
+            nodes_list.update(network_nodes_address)
         return nodes_list
 
-    def _connect_to_random_peers(self, peers_list: List[Address]) -> List[Address]:
+    def _connect_to_random_peers(self):
         """
         Connect to random peers
-        :param peers_list: list of peers address
         :return: updated list of active nodes
         """
-        try_nodes: set = set()
-        while len(self._connections) < Config.max_outbound_connections and len(try_nodes) < len(peers_list):
-            random_node: Address = choice(peers_list)
-            if random_node not in try_nodes:
-                try:
-                    connection = Connection.connect(random_node, self._message_queue)
-                except TimeoutException:
-                    peers_list.remove(random_node)
-                else:
-                    self._connections[connection.address] = connection
-                try_nodes.add(random_node)
-        return peers_list
+        while len(self._connections) < Config.max_outbound_connections:
+            connected_peers = {*self.connected_peers, self.my_address}
+            non_connected_peers = self.peer_list - connected_peers
+            if not non_connected_peers:
+                break
+            random_node: Address = choice(tuple(non_connected_peers))
+            try:
+                connection = Connection.connect(random_node, self._message_queue)
+            except TimeoutException:
+                self.peer_list.remove(random_node)
+            else:
+                self._connections[connection.address] = connection
 
-    def _connect_to_network(self) -> List[Address]:
+    def _connect_to_network(self) -> Set[Address]:
         """
         Connect to <max outbound> nodes
         1. load bootstrap nodes
         2. get list of nodes
         3. connect to random <max outbound> nodes
-        :return: list of active connected nodes
+        :return: None
         """
         bootstrap_nodes_address = self._load_bootstrap_nodes()
         logger.debug(f"loaded bootstrap nodes {bootstrap_nodes_address}")
-        peers_list: List[Address] = self._get_peers_list(bootstrap_nodes_address)
-        logger.debug(f"found {len(peers_list)} peers")
+        self.peer_list.update(self._get_peers_list(bootstrap_nodes_address))
+        logger.debug(f"found {len(self.peer_list)} peers")
 
-        if not peers_list:
+        if not self.peer_list:
             logger.info("Cant find any peers")
-            return []
-        peers_list = self._connect_to_random_peers(peers_list)
-        return peers_list
+            return set()
+        self._connect_to_random_peers()
 
     def _register_connection(self, connection: Connection) -> None:
         """
@@ -185,8 +185,25 @@ class Node:
         :param connection: socket connection object
         :return: None
         """
-        logger.debug(f"New connection from {connection.address}")
+        logger.debug(f"New connection {connection.address}")
         self._connections[connection.address] = connection
+
+    def _heartbeat(self):
+        """
+        Called from heartbeat service
+        and do node monitoring and call protocols heartbeats
+        :return: None
+        """
+        if int(time()) % 60 == 0:
+            self._connect_to_random_peers()
+
+        for protocol in self._protocols:
+            if protocol.require_heartbeat and time() - protocol.last_heartbeat > protocol.heartbeat_interval:
+                old_last_heartbeat = protocol.last_heartbeat
+                logger.debug(f"Calling '{protocol.name}' protocol heartbeat")
+                protocol.heartbeat()
+                assert protocol.last_heartbeat != old_last_heartbeat, \
+                    f'Protocol "{protocol.name}" must update last heartbeat every heartbeat'
 
     def _broadcast(self, message: Message, exclude: List[Address] = None):
         if exclude is None:
@@ -216,7 +233,7 @@ class Node:
         Start the node:
         connect to nodes and listen for network broadcast
         """
-        self.peer_list.update(self._connect_to_network())
+        self._connect_to_network()
         self._server.start()  # Start server thread
         self._protocol_handler.start()  # Start handling input messages
         self._heartbeat_service.start()

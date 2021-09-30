@@ -18,3 +18,5 @@ class Config:
     socket_connect_timeout = 2  # Seconds
     socket_request_timeout = 5  # Seconds
     socket_max_buffer_size = 1024 * 1024 * 2  # 2Mb
+
+    heartbeat_interval = 1

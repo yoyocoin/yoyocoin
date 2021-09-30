@@ -27,5 +27,5 @@ class Server(Thread):
             sleep(1)
             if self._connected_peers < Config.max_inbound_connections:
                 new_socket, address = self.listen_socket.accept()
-                new_connection = Connection(new_socket, address, self._message_queue)
+                new_connection = Connection(new_socket, address, self._message_queue, inbound=True)
                 self._new_connection_callback(new_connection)
