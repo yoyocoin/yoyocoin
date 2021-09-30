@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict
 from time import sleep, time
 from queue import Queue
 from threading import Thread
