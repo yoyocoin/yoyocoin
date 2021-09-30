@@ -6,16 +6,17 @@ from ..message import Message
 
 
 class BootstrapProtocol(Protocol):
+    SEND_MY_ADDRESS_INTERVAL = 60
     name: str = "bootstrap"
 
     def __init__(self, node):
-        super().__init__(node, require_heartbeat=True, heartbeat_interval=60)
+        super().__init__(node, require_heartbeat=True, heartbeat_interval=self.SEND_MY_ADDRESS_INTERVAL)
 
     def _add_active_node_address(self, address: Union[list, None]):
         if address is None:
             return
-        address = tuple(address)
-        self.node.peer_list.add(address)
+        tuple_address = tuple(address)
+        self.node.peer_list.add(tuple_address)
         if len(self.node.peer_list) > 20000:
             self.node.peer_list.pop()
 
@@ -31,12 +32,11 @@ class BootstrapProtocol(Protocol):
         elif action == "active_node_address":
             self._add_active_node_address(message.dict_message.get("address", None))
             message.dict_message['address'] = tuple(message.dict_message['address'])
-            if message.is_valid():
-                self.node._broadcast(message, exclude=[sender])  # relay
+            self.node.broadcast(message, exclude=[sender])  # relay
 
     def heartbeat(self):
         super().heartbeat()
-        self.node._broadcast(self.create_active_node_address_message(self.node.my_address))
+        self.node.broadcast(self.create_active_node_address_message(self.node.my_address))
 
     @classmethod
     def create_active_node_address_message(cls, address) -> Message:

@@ -1,13 +1,17 @@
-from p2p_network import Node
+from p2p_network import Node, Connection
 
 
-class YoyocoinNode:
+class YoyocoinNode(Node):
     def __init__(self, host: str):
-        self.node = Node(on_message=self.on_message, listen_host=host)
+        self.__class__.LISTEN_HOST = host  # for Local testing
+        super().__init__()
 
     def on_message(self, message):
         sender, data = message
         print(sender, data)
 
-    def start(self):
-        self.node.start()
+    def on_new_connection(self, connection: Connection):
+        pass
+
+    def on_connection_closed(self, connection: Connection):
+        pass

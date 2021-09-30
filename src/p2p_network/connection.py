@@ -1,3 +1,4 @@
+from typing import Dict, Union
 from time import sleep, time
 from queue import Queue
 from threading import Thread
@@ -6,7 +7,6 @@ from socket import socket as Socket, AF_INET, SOCK_STREAM
 
 from loguru import logger
 
-from .config import Config
 from .exceptions import ConnectionClosed
 from .protocols import VersionProtocol
 
@@ -14,6 +14,9 @@ from .protocols import VersionProtocol
 __all__ = ["Connection"]
 
 Address = Tuple[str, int]
+CONNECT_TIMEOUT = 2  # Seconds
+REQUEST_TIMEOUT = 5  # Seconds
+MAX_BUFFER_SIZE = 1024 * 1024  # 1Mb
 
 
 class Connection(Thread):
@@ -27,8 +30,8 @@ class Connection(Thread):
         self._run = True
 
         self._waiting = False
-        self._response = None
-        self.internal_sent_messages_hash = dict()
+        self._response: Union[bytes, None] = None
+        self.internal_sent_messages_hash: Dict = dict()
 
         self.socket.settimeout(None)
         self.start()
@@ -40,7 +43,7 @@ class Connection(Thread):
     @classmethod
     def connect(cls, address: Address, recv_queue: Queue):
         new_socket = Socket(AF_INET, SOCK_STREAM)
-        new_socket.settimeout(Config.socket_connect_timeout)
+        new_socket.settimeout(CONNECT_TIMEOUT)
         new_socket.connect(address)
         logger.debug(f"Connected to {address}")
         return cls(new_socket, address, recv_queue)
@@ -64,16 +67,20 @@ class Connection(Thread):
         # logger.debug(f"sent {message.decode()}")
 
     def get(self, request: bytes) -> bytes:
-        self.send(request)
+        self.socket.settimeout(REQUEST_TIMEOUT)
+        try:
+            self.send(request)
+        finally:
+            self.socket.settimeout(None)
         self._waiting = True
-        self._wait(timeout=20)
+        self._wait(timeout=REQUEST_TIMEOUT)
         response, self._response = self._response, None
         return response
 
     def run(self):
         while self._run:
             try:
-                data = self.socket.recv(Config.socket_max_buffer_size)
+                data = self.socket.recv(MAX_BUFFER_SIZE)
                 # logger.debug(f"received {data}")
             except (ConnectionError, OSError):
                 data = b''

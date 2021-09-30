@@ -4,7 +4,7 @@ from queue import Queue
 
 from loguru import logger
 
-from .message import Message, PREFIX
+from .message import Message
 from .protocol import Protocol
 
 
@@ -16,24 +16,27 @@ class InternalProtocolHandler(Thread):
         self._stop = False
         self._protocols = protocols
 
-    def _handle_message(self, sender, message):
+    def _handle_message(self, sender, message) -> bool:
+        """
+        Find message protocol and call it handle method on the message
+        :param sender: address the message sent from
+        :param message: message object
+        :return: did found message protocol
+        """
         for protocol in self._protocols:
             if message in protocol:  # Check for compatible protocol
                 protocol.handle(sender, message)
-                break
-        else:
-            # Handle no protocol message
-            pass
+                return True
+        return False
 
     def run(self):
         logger.debug("Protocol handler thread started")
         while not self._stop:
             connection_address, message_bytes = self._messages_queue.get()
-            if not message_bytes.startswith(PREFIX):
-                self._external_message_callback((connection_address, message_bytes))
-                continue
             try:
                 message = Message.from_bytes(message_bytes)
-                self._handle_message(connection_address, message)
+                processed = self._handle_message(connection_address, message)
+                if not processed:
+                    self._external_message_callback((connection_address, message_bytes))
             except Exception:
                 logger.exception("Protocol handler exception")

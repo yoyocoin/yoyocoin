@@ -4,10 +4,9 @@ from hashlib import sha256
 
 from .exceptions import InvalidMessageFormat
 
-__all__ = ["PREFIX", "Message"]
+__all__ = ["Message"]
 
 
-PREFIX = b"636"
 MAX_TTL = 10
 META_KEY = 'meta'
 
@@ -35,9 +34,6 @@ class Message:
 
     @classmethod
     def from_bytes(cls, data: bytes):
-        if not data.startswith(PREFIX):
-            raise InvalidMessageFormat(f"invalid prefix expected b'{PREFIX.decode()}'")
-        data = data[len(PREFIX):]
         json_message = base64.b64decode(data)
         dict_message = json.loads(json_message)
         meta = dict_message.pop(META_KEY)
@@ -48,4 +44,4 @@ class Message:
         return MAX_TTL >= self.ttl > 0
 
     def to_bytes(self) -> bytes:
-        return PREFIX + base64.b64encode(json.dumps(self._full_dict).encode())
+        return base64.b64encode(json.dumps(self._full_dict).encode())
