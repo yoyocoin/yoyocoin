@@ -22,7 +22,7 @@ MAX_RELAY_HASH_SAVE = 10000
 
 
 class Node:
-    BOOTSTRAP_LIST_FILE_PATH = "config/bootstrap.list"
+    BOOTSTRAP_LIST_FILE_PATH = "../config/bootstrap.list"
 
     MAX_OUTBOUND_CONNECTIONS = 8
     MAX_INBOUND_CONNECTIONS = 16
