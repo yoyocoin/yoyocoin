@@ -1,7 +1,10 @@
+from typing import Tuple
 from abc import ABC, abstractmethod
 from time import time
 
 from .message import Message
+
+Address = Tuple[str, int]
 
 
 class Protocol(ABC):
@@ -16,7 +19,7 @@ class Protocol(ABC):
         self.heartbeat_interval = heartbeat_interval
 
     @abstractmethod
-    def handle(self, sender, message):
+    def handle(self, sender: Address, message: Message):
         raise NotImplementedError
 
     def heartbeat(self):
