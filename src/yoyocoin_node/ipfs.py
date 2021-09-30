@@ -6,13 +6,13 @@ from requests.adapters import HTTPAdapter  # type: ignore
 # noinspection PyUnresolvedReferences
 from requests.packages.urllib3.util.retry import Retry  # type: ignore
 
-from .config import Config
+from p2p_network.config import Config
 
 
-class Node:
+class Ipfs:
     def __init__(self):
         self.ipfs_api_base_url = Config.ipfs_node_base_url
-        self.timeout = Config.request_timeout
+        self.timeout = Config.ipfs_request_timeout
         self.ipfs_session = self.setup_ipfs_session()
         self.ipfs_version = self.load_ipfs_version()
 
