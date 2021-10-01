@@ -1,3 +1,6 @@
+"""
+Hardcoded data for the blockchain (use for genesis validation)
+"""
 from time import time
 
 from .block import Block

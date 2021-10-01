@@ -1,3 +1,7 @@
+"""
+Helper class helping to validate signature's of objects that inherit from Signed (signed.py)
+"""
+
 from base64 import b64decode
 
 from ecdsa.keys import VerifyingKey, BadSignatureError  # type: ignore

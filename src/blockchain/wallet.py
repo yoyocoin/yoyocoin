@@ -1,3 +1,6 @@
+"""
+Wallet object that allow you to sign on transactions and load keys from secret password
+"""
 from base64 import b64encode
 
 from ecdsa.keys import SigningKey  # type: ignore

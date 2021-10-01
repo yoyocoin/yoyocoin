@@ -1,3 +1,14 @@
+"""
+Transaction class
+
+transaction contains:
+sender (wallet address sending the coins from)
+recipient (wallet address sending the coins to)
+amount (amount of coins to send)
+fee (coins to transfer to the block forger, more fee result faster transaction processing) minimum value is required
+tx_counter (number of transactions the sender wallet has made in the past)
+signature (signature on the transaction data created with the sender private key)
+"""
 from hashlib import sha256
 
 from .signed import Signed

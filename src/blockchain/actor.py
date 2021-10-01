@@ -1,3 +1,18 @@
+"""
+Actor is a class that expose simple api for working with the blockchain has a wallet owner
+
+get wallet address
+
+get wallet balance
+
+get wallet transactions counter
+
+transfer coins to other wallet
+
+forge new block
+"""
+
+
 from .chain import Chain
 from .wallet import Wallet
 from .config import Config
@@ -22,13 +37,26 @@ class Actor:
 
     @property
     def balance(self) -> float:
+        """
+        :return: Wallet coins balance
+        """
         return self._chain_wallet.balance
 
     @property
     def chain_tx_counter(self) -> int:
+        """
+        :return: Number of transactions the wallet created (used for transaction nonce)
+        """
         return self._chain_wallet.tx_counter
 
     def transfer_coins(self, recipient: str, amount: int, fee: int = Config.min_fee):
+        """
+        Transfer coins to other wallet
+        :param recipient: wallet address to transfer the coins
+        :param amount: amount of coins to transfer
+        :param fee: transaction fee to speed up transaction processing (minimum value required)
+        :return: None
+        """
         transaction = self.chain.create_unsigned_transaction(
             sender=self.wallet.address,
             recipient=recipient,
@@ -42,6 +70,10 @@ class Actor:
         self.tx_counter += 1
 
     def forge_block(self):
+        """
+        Creating new block object and add it to blockchain candidate block's
+        :return: None
+        """
         block = self.chain.create_unsigned_block(self.wallet.address)
         signature = self.wallet.sign(block.hash)
         block.add_signature(signature)

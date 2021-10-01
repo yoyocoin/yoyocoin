@@ -1,3 +1,12 @@
+"""
+Lottery system, chooses the next block added to the chain
+the wining block is randomly selected
+block can have bigger probability winning if the block forger have more coins in his wallet
+after winning the forger wallet cant win again for some number of blocks
+
+The NextBlockChooser check all the candidate block and choose the block with the least penalty score
+block is added every fixed interval of seconds
+"""
 from threading import Thread
 from time import time
 from queue import Queue, Empty
