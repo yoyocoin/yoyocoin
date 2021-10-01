@@ -197,7 +197,7 @@ class Node:
             bootstrap_node.close()
         message = Message.from_bytes(response)
         peer_list = message.dict_message.get("peers", [])
-        peer_list = map(lambda x: tuple(x), peer_list)
+        peer_list = map(tuple, peer_list)
         return peer_list
 
     def _get_peers_list(self, bootstrap_nodes_address: List[Address]) -> Set[Address]:

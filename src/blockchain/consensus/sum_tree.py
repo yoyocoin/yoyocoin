@@ -1,5 +1,11 @@
 class SumTree:
     def __init__(self, left=None, right=None, value=None, data=None):
+        """ SumTree node
+        :param left: left node object
+        :param right: right node object
+        :param value: node value
+        :param data: node data
+        """
         self._left = left
         self._right = right
 
@@ -32,7 +38,7 @@ class SumTree:
 
     @classmethod
     def from_dict(cls, k_v_data: dict):
-        """
+        """ Create SumTree from dict
         value: value that is sumed
         data:  data returned on search
         """

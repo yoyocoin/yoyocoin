@@ -11,6 +11,12 @@ class Protocol(ABC):
     name: str = 'protocol name'  # Protocol name (for finding related messages)
 
     def __init__(self, node, require_heartbeat: bool = False, heartbeat_interval: float = None):
+        """ Create protocol
+        extend node handling of incoming messages
+        :param node: the network node
+        :param require_heartbeat: need to call on heartbeat?
+        :param heartbeat_interval: space between heartbeat calls
+        """
         assert not require_heartbeat or heartbeat_interval is not None, "heartbeat interval is required!"
 
         self.node = node

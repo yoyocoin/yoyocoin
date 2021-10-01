@@ -50,8 +50,7 @@ class Actor:
         return self._chain_wallet.tx_counter
 
     def transfer_coins(self, recipient: str, amount: int, fee: int = Config.min_fee):
-        """
-        Transfer coins to other wallet
+        """ Transfer coins to other wallet
         :param recipient: wallet address to transfer the coins
         :param amount: amount of coins to transfer
         :param fee: transaction fee to speed up transaction processing (minimum value required)
