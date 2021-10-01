@@ -1,3 +1,7 @@
+"""
+Custom exceptions for the blockchain package
+"""
+
 __all__ = [
     "BlockChainError",
     "ValidationError",

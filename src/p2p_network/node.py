@@ -12,6 +12,7 @@ from .connection import Connection
 from .protocol_handler import InternalProtocolHandler
 from .heartbeat_service import HeartbeatService
 from .protocols import BootstrapProtocol, VersionProtocol, PingProtocol
+from .protocol import Protocol
 from .message import Message
 
 
@@ -41,11 +42,12 @@ class Node:
 
     HEARTBEAT_INTERVAL = 1
 
-    def __init__(self):
-
+    def __init__(self, protocols: List[Protocol] = None):
+        if protocols is None:
+            protocols = []
         self.my_address = (self.__class__.LISTEN_HOST, self.__class__.LISTEN_PORT)
         self.peer_list: Set[Address] = {self.my_address}
-        self._protocols = [BootstrapProtocol(self), VersionProtocol(self), PingProtocol(self)]
+        self._protocols = [BootstrapProtocol(self), VersionProtocol(self), PingProtocol(self), *protocols]
 
         self._active_connections: List = []
         self._initialized: bool = False
@@ -195,7 +197,7 @@ class Node:
             bootstrap_node.close()
         message = Message.from_bytes(response)
         peer_list = message.dict_message.get("peers", [])
-        peer_list = map(lambda x: tuple(x), peer_list)
+        peer_list = map(tuple, peer_list)
         return peer_list
 
     def _get_peers_list(self, bootstrap_nodes_address: List[Address]) -> Set[Address]:

@@ -6,6 +6,10 @@ from loguru import logger
 
 class HeartbeatService(Thread):
     def __init__(self, node_heartbeat_callback, interval):
+        """ Create HeartbeatService object
+        :param node_heartbeat_callback: callback to call on every beat
+        :param interval: space between beats
+        """
         super().__init__(daemon=True, name="Heartbeat service")
         self.node_heartbeat_callback = node_heartbeat_callback
         self.interval = interval

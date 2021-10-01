@@ -7,9 +7,9 @@ apt install wget -y
 # install ipfs
 wget https://dist.ipfs.io/go-ipfs/v0.9.1/go-ipfs_v0.9.1_linux-amd64.tar.gz
 tar xvfz go-ipfs_v0.9.1_linux-amd64.tar.gz
-cd go-ipfs
+cd go-ipfs || exit
 ./install.sh
-IPFS_PATH=~/.ipfs
+export IPFS_PATH=~/.ipfs
 ipfs init
 
 # setup private network

@@ -17,8 +17,7 @@ class InternalProtocolHandler(Thread):
         self._protocols = protocols
 
     def _handle_message(self, sender, message) -> bool:
-        """
-        Find message protocol and call it handle method on the message
+        """ Find message protocol and call it handle method on the message
         :param sender: address the message sent from
         :param message: message object
         :return: did found message protocol

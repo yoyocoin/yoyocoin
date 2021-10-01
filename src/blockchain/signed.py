@@ -1,3 +1,6 @@
+"""
+Signed is interface for signed objects on the chain (e.g: block, transaction)
+"""
 from abc import ABC, abstractmethod
 
 

@@ -1,3 +1,16 @@
+"""
+Chain class is singleton that represent blockchain
+the object contain methods to interact with the blockchain:
+- get chain wallet (get wallet data from the blockchain by wallet address)
+- add block (add block object to candidate blocks)
+- add transaction (add transaction object to transaction pool)
+- create unsigned block (create block object with only signature missing)
+- create unsigned transaction (create transaction object with only signature missing)
+- validate block (Validate block data, returns bool value)
+- validate transaction (Validate transaction data, returns bool value)
+- block penalty (Calculate block penalty score based on forger, used by lottery system)
+"""
+
 from typing import Dict, List
 import time
 from base64 import b64decode
@@ -61,7 +74,12 @@ class Chain:
         self.next_block_chooser = NextBlockChooser(self)
         self.next_block_chooser.start()
 
-    def get_chain_wallet(self, address: str):
+    def get_chain_wallet(self, address: str) -> ChainWallet:
+        """
+        Get chain wallet object from address
+        :param address: wallet address
+        :return: chain wallet object contain all the wallet data (balance, tx_count, etc...)
+        """
         if address not in self.chain_wallets:
             self.chain_wallets[address] = ChainWallet(
                 address,
@@ -70,10 +88,21 @@ class Chain:
         return self.chain_wallets[address]
 
     def add_block(self, block_dict: dict):
+        """
+        Add block as next block candidate
+        :param block_dict: block dict representation
+        :return: None
+        """
         block = Block.from_dict(block_dict)
         self.next_block_chooser.scan_block(block)
 
     def link_new_block(self, block: Block, _i_know_what_i_doing: bool = False):
+        """
+        Internal method used by lottery system to add winning block to chain
+        :param block: winning block object
+        :param _i_know_what_i_doing: flag to stop future mistakes
+        :return: None
+        """
         if not _i_know_what_i_doing:
             raise RuntimeError(
                 "You can't access this sensitive method without _i_know_what_i_doing argument, "
@@ -82,11 +111,21 @@ class Chain:
         self._process_block(block)
 
     def add_transaction(self, transaction_dict: dict):
+        """
+        Validate transaction and add transaction to pool
+        :param transaction_dict: dict representation of transaction
+        :return: None
+        """
         transaction = Transaction.from_dict(transaction_dict)
         self.validate_transaction(transaction)
         self.transaction_pool[transaction.hash] = transaction
 
-    def create_unsigned_block(self, forger: str):
+    def create_unsigned_block(self, forger: str) -> Block:
+        """
+        Create block object with all the necessary data (but no signature)
+        :param forger: forger wallet address
+        :return: block object (without signature)
+        """
         index = self._last_block_index + 1
         previous_hash = self._last_block_hash
         timestamp = time.time()
@@ -102,7 +141,16 @@ class Chain:
 
     def create_unsigned_transaction(
         self, sender: str, recipient: str, amount: float, fee: float, tx_counter: int
-    ):
+    ) -> Transaction:
+        """
+        Create transaction object without signature
+        :param sender: wallet address of coins sender
+        :param recipient: wallet address of coins recipient
+        :param amount: amount of coins to transfer
+        :param fee: fee to be sent to block forger (can speedup transaction processing)
+        :param tx_counter: how match transactions the sender wallet made in the past (used for transaction duplication)
+        :return: Transaction object (with no signature)
+        """
         transaction = Transaction(
             sender=sender,
             recipient=recipient,
@@ -113,6 +161,12 @@ class Chain:
         return transaction
 
     def validate_transaction(self, transaction: Transaction) -> bool:
+        """
+        Validate transaction
+        check tx_counter, balance, fee, signature, and prevent self transfer
+        :param transaction: transaction object
+        :return: True if valid else False
+        """
         sender_wallet = self.get_chain_wallet(transaction.sender)
         if transaction.tx_counter <= sender_wallet.tx_counter:
             raise LowTransactionCounterError(
@@ -135,6 +189,15 @@ class Chain:
         return True
 
     def validate_block(self, block: Block) -> bool:
+        """
+        Block object validation
+        if genesis check hardcoded hash
+        else:
+        check index, previous_hash, signature
+        and validate all the block transactions
+        :param block: block object
+        :return: True is valid else False
+        """
         if block.index == 0:
             if block.hash != GENESIS_BLOCK.hash:
                 raise InvalidGenesisHashError(
@@ -176,6 +239,11 @@ class Chain:
         return True
 
     def block_penalty(self, block: Block) -> float:
+        """
+        Calculate block penalty score (affect lottery winning chances)
+        :param block: block object
+        :return: 0 - number of wallets on the chain
+        """
         return wallet_penalty(
             self.sum_tree,
             block.forger,
@@ -184,6 +252,11 @@ class Chain:
         )
 
     def _process_block(self, block: Block):
+        """
+        Update blockchain state with the new block data
+        :param block: block object
+        :return: None
+        """
         self.validate_block(block)
         forger_wallet = self.get_chain_wallet(block.forger)
         fees = 0.0
@@ -199,6 +272,14 @@ class Chain:
         self._insert_block_to_chain(block)
 
     def _insert_block_to_chain(self, block: Block):
+        """
+        Called every time block is added to chain
+        1. save block
+        2. remove block transactions from pool
+        3. update lottery system is needed
+        :param block: new block object
+        :return: None
+        """
         self.blocks.append(block)
         self.epoch_random = self._next_epoch_random(block.forger)
         for transaction in block.transactions:
@@ -206,29 +287,52 @@ class Chain:
         if self.sum_tree is None or block.index % Config.epoch_size == 0:
             self._build_sum_tree()
 
-    def _next_epoch_random(self, new_block_forger_address: str):
+    def _next_epoch_random(self, new_block_forger_address: str) -> float:
+        """
+        Calculate next epoch lottery random seed with the last block forger wallet address
+        :param new_block_forger_address: current epoch last block forger address
+        :return: float number between 0-1
+        """
         bytes_compressed_address = b64decode(new_block_forger_address)[1:]
         new_random = int.from_bytes(bytes_compressed_address, "big")
         return new_random / Config.curve.order
 
     def _build_sum_tree(self):
+        """
+        Create sum tree from all the wallets on the block chain
+        :return: None
+        """
         self.sum_tree = SumTree.from_dict(
             {address: wallet.balance for address, wallet in self.chain_wallets.items()}
         )
 
     @property
     def _last_block(self) -> Block:
+        """
+        :return: last block on the chain
+        """
         return self.blocks[-1]
 
     @property
     def _last_block_index(self) -> int:
+        """
+        :return: last block index (int)
+        """
         return self._last_block.index
 
     @property
     def _last_block_hash(self) -> str:
+        """
+        :return: last block hash (str)
+        """
         return self._last_block.hash
 
     def _get_transactions(self, count: int):
+        """
+        Get the best paying (with fee's) transactions from pool
+        :param count: number of transactions wanted
+        :return: sorted list of transactions
+        """
         count = min(count, len(self.transaction_pool))
         return sorted(
             islice(

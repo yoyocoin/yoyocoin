@@ -1,3 +1,7 @@
+"""
+Contain the blockchain configuration
+"""
+
 from ecdsa.curves import SECP256k1  # type: ignore
 from hashlib import sha256
 

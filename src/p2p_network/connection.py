@@ -49,8 +49,7 @@ class Connection(Thread):
         return cls(new_socket, address, recv_queue)
 
     def _wait(self, timeout: int):
-        """
-        Wait until self._waiting is False
+        """ Wait until self._waiting is False
         :param timeout: max seconds to wait
         :return:
         """
