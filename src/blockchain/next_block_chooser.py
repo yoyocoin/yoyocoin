@@ -11,6 +11,8 @@ from threading import Thread
 from time import time
 from queue import Queue, Empty
 
+from loguru import logger
+
 from .config import Config
 from .block import Block
 
@@ -49,6 +51,7 @@ class NextBlockChooser(Thread):
 
     def _add_new_block(self):
         if self.__current_best_block is not None:
+            logger.info(f"Adding block index: {self.__current_best_block.index} hash: {self.__current_best_block.hash}")
             self.chain.link_new_block(
                 self.__current_best_block, _i_know_what_i_doing=True
             )

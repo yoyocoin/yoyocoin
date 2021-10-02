@@ -10,14 +10,12 @@ META_KEY = 'meta'
 
 
 class Message:
-    def __init__(self, dict_message: dict, broadcast: bool = False, ttl: int = None):
+    def __init__(self, dict_message: dict, broadcast: bool = False, ttl: int = MAX_TTL):
         """ Create Message object
         :param dict_message: dict values to send
         :param broadcast: is this message is broadcast message
         :param ttl: limit amount of hops for broadcast message
         """
-        if ttl is None:
-            ttl = MAX_TTL
         self.dict_message = dict_message
         self.is_broadcast = broadcast
         self.ttl = ttl

@@ -17,7 +17,7 @@ class SumTree:
             self.sum = self._value
 
     def search(self, value: int, offset: int = 0):
-        if self._value:
+        if self._value is not None:
             return self._data
         if self._left.sum + offset > value:
             return self._left.search(value, offset=offset)
@@ -25,6 +25,8 @@ class SumTree:
 
     @classmethod
     def _build_tree(cls, arr: list):
+        if len(arr) == 1:
+            return arr[0]
         n_arr = []
         for i in range(0, len(arr), 2):
             if i + 1 < len(arr):

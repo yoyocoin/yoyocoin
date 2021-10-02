@@ -6,13 +6,23 @@ from requests.adapters import HTTPAdapter  # type: ignore
 # noinspection PyUnresolvedReferences
 from requests.packages.urllib3.util.retry import Retry  # type: ignore
 
-from p2p_network.config import Config
-
 
 class Ipfs:
-    def __init__(self):
-        self.ipfs_api_base_url = Config.ipfs_node_base_url
-        self.timeout = Config.ipfs_request_timeout
+    BASE_URL = "http://127.0.0.1:5001/api/v0/"
+    REQUEST_TIMEOUT = 5
+
+    _instance = None
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls(_i_know_want_i_doing=True)
+        return cls._instance
+
+    def __init__(self, _i_know_want_i_doing: bool = False):
+        if not _i_know_want_i_doing:
+            raise RuntimeError("Cant init singleton. use get_instance class method")
+        self.timeout = self.REQUEST_TIMEOUT
         self.ipfs_session = self.setup_ipfs_session()
         self.ipfs_version = self.load_ipfs_version()
 
@@ -24,14 +34,14 @@ class Ipfs:
 
     def load_ipfs_version(self) -> dict:
         return self.ipfs_session.post(
-            urljoin(self.ipfs_api_base_url, "version"),
+            urljoin(self.BASE_URL, "version"),
             params={"all": True},
             timeout=self.timeout,
         ).json()
 
     def load_cid(self, cid: str) -> dict:
         return self.ipfs_session.post(
-            urljoin(self.ipfs_api_base_url, "block/get"),
+            urljoin(self.BASE_URL, "block/get"),
             params={"arg": cid},
             timeout=self.timeout,
         ).json()
@@ -39,7 +49,7 @@ class Ipfs:
     def create_cid(self, data: dict) -> str:
         bytes_data = json.dumps(data).encode()
         return self.ipfs_session.post(
-            urljoin(self.ipfs_api_base_url, "block/put"),
+            urljoin(self.BASE_URL, "block/put"),
             files={"content": bytes_data},
             timeout=self.timeout,
-        ).json()
+        ).json()["Key"]
