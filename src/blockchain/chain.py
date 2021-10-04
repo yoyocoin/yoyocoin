@@ -24,6 +24,7 @@ from .config import Config
 from .consensus import wallet_penalty, SumTree
 from .next_block_chooser import NextBlockChooser
 from .hardcoded import GENESIS_BLOCK, developer_address
+from .chain_summery import ChainSummery
 
 
 from .exceptions import (
@@ -57,6 +58,7 @@ class Chain:
                 f"{self.__class__.__name__} is singleton use get_instance class method."
             )
         self.blocks: List[Block] = []
+        self.blocks_hash: List[str] = []
         self.transaction_pool: Dict[
             str, Transaction
         ] = {}  # {transaction_hash: transaction object}
@@ -73,6 +75,10 @@ class Chain:
 
         self.next_block_chooser = NextBlockChooser(self)
         self.next_block_chooser.start()
+
+    @property
+    def summery(self) -> ChainSummery:
+        return ChainSummery(blocks=self.blocks_hash, penalty=self.penalty)
 
     def get_chain_wallet(self, address: str) -> ChainWallet:
         """
@@ -280,12 +286,15 @@ class Chain:
         :param block: new block object
         :return: None
         """
-        self.blocks.append(block)
         self.epoch_random = self._next_epoch_random(block.forger)
-        for transaction in block.transactions:
-            del self.transaction_pool[transaction.hash]
         if self.sum_tree is None or block.index % Config.epoch_size == 0:
             self._build_sum_tree()
+
+        self.blocks.append(block)
+        self.blocks_hash.append(block.hash)
+        self.penalty += self.block_penalty(block)
+        for transaction in block.transactions:
+            del self.transaction_pool[transaction.hash]
 
     def _next_epoch_random(self, new_block_forger_address: str) -> float:
         """
