@@ -43,6 +43,10 @@ class Chain:
     _instance = None
 
     @classmethod
+    def update_chain(cls, instance):
+        cls._instance = instance
+
+    @classmethod
     def get_instance(cls):
         if cls._instance is None:
             cls._instance = cls(_i_know_what_i_doing=True)
@@ -294,7 +298,7 @@ class Chain:
         self.blocks_hash.append(block.hash)
         self.penalty += self.block_penalty(block)
         for transaction in block.transactions:
-            del self.transaction_pool[transaction.hash]
+            self.transaction_pool.pop(transaction.hash, None)
 
     def _next_epoch_random(self, new_block_forger_address: str) -> float:
         """

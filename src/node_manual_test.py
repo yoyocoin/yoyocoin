@@ -1,5 +1,6 @@
 from sys import argv
 from time import sleep
+from random import randrange
 
 from yoyocoin_node import YoyocoinNode
 from blockchain import Actor, Config
@@ -25,14 +26,14 @@ def main():
 
     n = YoyocoinNode(host=ip)
     n.start()
+    sleep(5)
+    n.sync()
     while True:
-        sleep(32)
-        for _ in range(5):
+        sleep(randrange(30, 50))
+        for _ in range(2):
             transaction = actor.transfer_coins(actor2.address, 0.1)
             n.broadcast_transaction(transaction.to_dict())
-        print(len(actor.chain.transaction_pool))
         n.broadcast_candidate_block(actor.forge_block().to_dict())
-        print(len(actor.chain.blocks), actor.chain._last_block_hash)
     idle()
 
 

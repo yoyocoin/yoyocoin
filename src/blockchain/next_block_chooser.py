@@ -27,6 +27,7 @@ class NextBlockChooser(Thread):
 
         self.__current_best_block = None
         self.__best_block_penalty = None
+        self.__pause = False
         self.__stop = False
 
     def scan_block(self, block: Block):
@@ -34,7 +35,7 @@ class NextBlockChooser(Thread):
             self.chain.validate_block(block)
         except ValidationError:
             # Retry on block that sent sooner
-            if block.index <= self.chain._last_block_index:
+            if block.index - self.chain._last_block_index != 1:
                 raise
             sleep(2)  # Make sure the previous block has added to the chain
             self.chain.validate_block(block)  # try again
@@ -67,9 +68,18 @@ class NextBlockChooser(Thread):
 
     def run(self):
         while not self.__stop:
+            if self.__pause:
+                sleep(0.2)
+                continue
             self._check_block()
             if int(time()) % Config.new_block_interval == 0:
                 self._add_new_block()
 
     def stop(self):
         self.__stop = True
+
+    def pause(self):
+        self.__pause = True
+
+    def unpause(self):
+        self.__pause = False

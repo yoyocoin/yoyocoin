@@ -24,15 +24,16 @@ class ChainSummery:
         :return: block index to start update from, list of blocks
         """
         diff_start: int = 0
-        for index, my_block_hash, other_block_hash in enumerate(zip(self.blocks, other.blocks)):
+        for index, blocks_hashs in enumerate(zip(self.blocks, other.blocks)):
+            my_block_hash, other_block_hash = blocks_hashs
             if my_block_hash == other_block_hash:
-                diff_start += index
+                diff_start += 1
             else:
                 break
-        return diff_start, other.blocks[diff_start:]
+        return diff_start
 
     def __eq__(self, other):
-        return self.penalty == other.score and self.length == self.length
+        return self.penalty == other.penalty and self.length == other.length
 
     def __gt__(self, other):
-        return self.penalty < other.score and self.length >= self.length
+        return self.length > other.length or (self.length == other.length and self.penalty < other.penalty)
