@@ -176,4 +176,4 @@ class MyChainTester(unittest.TestCase):
         genesis = Block(index=0, previous_hash="0", forger=forger.address, timestamp=time())
 
         with self.assertRaises(InvalidGenesisHashError):
-            chain.add_block(genesis.to_dict())
+            chain.validate_block(genesis)

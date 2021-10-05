@@ -15,7 +15,7 @@ from loguru import logger
 
 from .config import Config
 from .block import Block
-from .exceptions import NonSequentialBlockError
+from .exceptions import ValidationError
 
 
 class NextBlockChooser(Thread):
@@ -32,15 +32,17 @@ class NextBlockChooser(Thread):
     def scan_block(self, block: Block):
         try:
             self.chain.validate_block(block)
-        except NonSequentialBlockError:
-            # TODO: think about it
-            sleep(2)  # Make sure the privies block has added to the chain
+        except ValidationError:
+            # Retry on block that sent sooner
+            if block.index <= self.chain._last_block_index:
+                raise
+            sleep(2)  # Make sure the previous block has added to the chain
             self.chain.validate_block(block)  # try again
         self.blocks_queue.put(item=block)
 
     def _check_block(self):
         try:
-            block: Block = self.blocks_queue.get(timeout=1)
+            block: Block = self.blocks_queue.get(timeout=0.2)
         except Empty:
             return
         block_penalty = self.chain.block_penalty(block)
