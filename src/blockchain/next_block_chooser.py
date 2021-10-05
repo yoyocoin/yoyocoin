@@ -8,13 +8,14 @@ The NextBlockChooser check all the candidate block and choose the block with the
 block is added every fixed interval of seconds
 """
 from threading import Thread
-from time import time
+from time import time, sleep
 from queue import Queue, Empty
 
 from loguru import logger
 
 from .config import Config
 from .block import Block
+from .exceptions import NonSequentialBlockError
 
 
 class NextBlockChooser(Thread):
@@ -29,7 +30,12 @@ class NextBlockChooser(Thread):
         self.__stop = False
 
     def scan_block(self, block: Block):
-        self.chain.validate_block(block)
+        try:
+            self.chain.validate_block(block)
+        except NonSequentialBlockError:
+            # TODO: think about it
+            sleep(2)  # Make sure the privies block has added to the chain
+            self.chain.validate_block(block)  # try again
         self.blocks_queue.put(item=block)
 
     def _check_block(self):
