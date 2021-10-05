@@ -6,6 +6,8 @@ from requests.adapters import HTTPAdapter  # type: ignore
 # noinspection PyUnresolvedReferences
 from requests.packages.urllib3.util.retry import Retry  # type: ignore
 
+from loguru import logger
+
 
 class Ipfs:
     BASE_URL = "http://127.0.0.1:5001/api/v0/"
@@ -28,11 +30,12 @@ class Ipfs:
 
     def setup_ipfs_session(self):
         ipfs_session = requests.Session()
-        retries = Retry(total=15, backoff_factor=1)
+        retries = Retry(total=3, backoff_factor=1)
         ipfs_session.mount('http://', HTTPAdapter(max_retries=retries))
         return ipfs_session
 
     def load_ipfs_version(self) -> dict:
+        logger.info("Loading ipfs node version")
         return self.ipfs_session.post(
             urljoin(self.BASE_URL, "version"),
             params={"all": True},
