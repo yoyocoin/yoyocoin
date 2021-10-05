@@ -13,9 +13,12 @@ from blockchain import Chain
 class TransactionProtocol(Protocol):
     name = "transactions"
 
-    def __init__(self, node, blockchain: Chain):
+    def __init__(self, node):
         super().__init__(node)
-        self.blockchain = blockchain
+
+    @property
+    def blockchain(self):
+        return Chain.get_instance()
 
     def handle(self, sender, message):
         """

@@ -9,6 +9,7 @@ Protocol that handle block broadcast
 from p2p_network.protocol import Protocol
 from p2p_network.message import Message
 from blockchain import Chain
+from blockchain.exceptions import ValidationError
 
 from ..ipfs import Ipfs
 
@@ -16,10 +17,13 @@ from ..ipfs import Ipfs
 class BlockProtocol(Protocol):
     name = "blocks"
 
-    def __init__(self, node, blockchain: Chain):
+    def __init__(self, node):
         super().__init__(node)
-        self.blockchain = blockchain
         self.ipfs = Ipfs.get_instance()
+
+    @property
+    def blockchain(self):
+        return Chain.get_instance()
 
     def handle(self, sender, message):
         """
@@ -31,7 +35,11 @@ class BlockProtocol(Protocol):
         if message.dict_message.get("action", None) == "new-block":
             block_cid = message.dict_message["block"]
             block_dict = self.ipfs.load_cid(block_cid)
-            self.blockchain.add_block(block_dict)
+            try:
+                self.blockchain.add_block(block_dict)
+            except ValidationError:
+                # TODO: if larger index sync else ignore
+                raise
             self._broadcast_forward(message, sender)
 
     def _broadcast_forward(self, message, sender):
