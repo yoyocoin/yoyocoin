@@ -1,7 +1,7 @@
 from sys import argv
 from time import sleep
 
-from yoyocoin_node import YoyocoinNode
+from netp2p import Node
 
 
 def idle():
@@ -13,9 +13,10 @@ def idle():
 
 
 def main():
-    ip = argv[1]
-    n = YoyocoinNode(host=ip)
+    port = int(argv[1])
+    n = Node(None, port=port)
     n.start()
+    n._connect()
     idle()
 
 
