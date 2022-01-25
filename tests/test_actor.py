@@ -34,7 +34,8 @@ class MyActorTesterOnTestNet(unittest.TestCase):
         tx = actor1.create_transaction(recipient=actor2.address, amount=10)
         chain.add_transaction(tx.to_dict())
 
-        forger.forge_block()
+        block = forger.forge_block()
+        chain.add_block(block.to_dict())
 
     def test_transaction_to_self(self):
         actor1 = Actor(secret_key="super_secret1!")
