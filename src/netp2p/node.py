@@ -1,5 +1,6 @@
 from threading import Thread
 from time import sleep
+from pathlib import Path
 
 from .server import Server, RequestHandler
 from .processor import Processor
@@ -7,6 +8,9 @@ from .client import Client
 
 
 HEARTBEAT_RATE = 1 # Seconds
+
+ROOT = Path(__file__).parent.parent
+BOOTSTRAP_LIST = str(ROOT / "config" / "bootstrap.list")
 
 
 class Node(Thread):
@@ -22,7 +26,14 @@ class Node(Thread):
             bind_and_activate=True,
             processor=self.processor,
         )
+
+        self._to_relay = []
+
         super().__init__(name="node", daemon=True)
+
+    def broadcast(self, msg):
+        """Broadcast message to peers"""
+        self._to_relay.append(msg)
 
     def run(self):
         """Send updates to connected peers every heartbeat 1/s"""
@@ -36,7 +47,8 @@ class Node(Thread):
 
         heartbeat = 0
         while True:
-            relay_messages = []
+            relay_messages = self._to_relay.copy()
+            self._to_relay.clear()
             heartbeat += 1
             sleep(HEARTBEAT_RATE)
             if heartbeat % 10 == 0 and self._need_to_connect():
@@ -51,7 +63,7 @@ class Node(Thread):
     def _load_bootstarp_nodes(self):
         bootstarp_nodes = [
             (line.split(":")[0], int(line.split(":")[1]))
-            for line in open("data/bootstarp.list").read().split("\n")
+            for line in open(BOOTSTRAP_LIST).read().split("\n")
         ]
         print("loaded nodes", bootstarp_nodes)
         self.nodes |= set(bootstarp_nodes)
