@@ -10,7 +10,7 @@ from blockchain.exceptions import (
     NonSequentialBlockError,
     InsufficientBalanceError,
     LowTransactionCounterError,
-    InvalidGenesisHashError
+    InvalidGenesisHashError,
 )
 
 
@@ -90,7 +90,9 @@ class MyChainTester(unittest.TestCase):
             tx_counter=1,
         )
         signature = recipient.wallet.sign(valid_unsigned_transaction.hash)
-        valid_unsigned_transaction.add_signature(signature)  # add bad signature (recipient signature is invalid)
+        valid_unsigned_transaction.add_signature(
+            signature
+        )  # add bad signature (recipient signature is invalid)
         with self.assertRaises(InvalidSignatureError):
             chain.add_transaction(valid_unsigned_transaction.to_dict())
 
@@ -105,12 +107,15 @@ class MyChainTester(unittest.TestCase):
         recipient = Actor(secret_key="recipient_key")
 
         for _ in range(2):
-            sender.transfer_coins(recipient.address, 10)
+            tx = sender.create_transaction(recipient.address, 10)
+            chain.add_transaction(tx.to_dict())
 
         index = chain._last_block_index + 1
         previous_hash = chain._last_block_hash
         timestamp = time()
-        transactions = list(chain._get_transactions(Config.max_transactions_per_block + 1))  # more then allowed
+        transactions = list(
+            chain._get_transactions(Config.max_transactions_per_block + 1)
+        )  # more then allowed
         block = Block(
             index=index,
             previous_hash=previous_hash,
@@ -152,9 +157,13 @@ class MyChainTester(unittest.TestCase):
 
         sender = Actor(secret_key="sender_key")
         recipient = Actor(secret_key="recipient_key")
+        chain = Chain.get_instance()
 
         with self.assertRaises(InsufficientBalanceError):
-            sender.transfer_coins(recipient.address, Config.test_net_wallet_initial_coins+1)
+            tx = sender.create_transaction(
+                recipient.address, Config.test_net_wallet_initial_coins + 1
+            )
+            chain.add_transaction(tx.to_dict())
 
     def test_add_low_tx_counter(self):
         Config.test_net = True
@@ -162,18 +171,22 @@ class MyChainTester(unittest.TestCase):
 
         sender = Actor(secret_key="sender_key")
         recipient = Actor(secret_key="recipient_key")
+        chain = Chain.get_instance()
 
         sender.tx_counter = -1
 
         with self.assertRaises(LowTransactionCounterError):
-            sender.transfer_coins(recipient.address, 10)
+            tx = sender.create_transaction(recipient.address, 10)
+            chain.add_transaction(tx.to_dict())
 
     def test_invalid_genesis_block(self):
         chain = Chain.get_instance()
         chain.blocks.clear()  # remove default genesis
 
         forger = Actor(secret_key="forger_key")
-        genesis = Block(index=0, previous_hash="0", forger=forger.address, timestamp=time())
+        genesis = Block(
+            index=0, previous_hash="0", forger=forger.address, timestamp=time()
+        )
 
         with self.assertRaises(InvalidGenesisHashError):
             chain.add_block(genesis.to_dict())

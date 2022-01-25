@@ -13,7 +13,9 @@ forge new block
 """
 
 
+from .block import Block
 from .chain import Chain
+from .transaction import Transaction
 from .wallet import Wallet
 from .config import Config
 
@@ -49,8 +51,10 @@ class Actor:
         """
         return self._chain_wallet.tx_counter
 
-    def transfer_coins(self, recipient: str, amount: int, fee: int = Config.min_fee):
-        """ Transfer coins to other wallet
+    def create_transaction(
+        self, recipient: str, amount: int, fee: int = Config.min_fee
+    ) -> Transaction:
+        """Transfer coins to other wallet
         :param recipient: wallet address to transfer the coins
         :param amount: amount of coins to transfer
         :param fee: transaction fee to speed up transaction processing (minimum value required)
@@ -65,15 +69,15 @@ class Actor:
         )
         signature = self.wallet.sign(transaction.hash)
         transaction.add_signature(signature)
-        self.chain.add_transaction(transaction.to_dict())
         self.tx_counter += 1
+        return transaction
 
-    def forge_block(self):
+    def forge_block(self) -> Block:
         """
-        Creating new block object and add it to blockchain candidate block's
-        :return: None
+        Creating new block of transactions
+        :return: block
         """
         block = self.chain.create_unsigned_block(self.wallet.address)
         signature = self.wallet.sign(block.hash)
         block.add_signature(signature)
-        self.chain.add_block(block.to_dict())
+        return block

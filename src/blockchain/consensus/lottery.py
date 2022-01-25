@@ -14,7 +14,7 @@ def _binary_search(array, element):
 
 @lru_cache(maxsize=1)
 def _find_lottery_winner(root: SumTree, lottery_number: float) -> int:
-    """ Find lottery winner index
+    """Find lottery winner index
     :param root: the root node of the sum tree
     :param lottery_number: float number in range of 0 to 1
     :return: winner wallet index
