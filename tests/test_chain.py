@@ -105,7 +105,8 @@ class MyChainTester(unittest.TestCase):
         recipient = Actor(secret_key="recipient_key")
 
         for _ in range(2):
-            sender.transfer_coins(recipient.address, 10)
+            tx = sender.create_transaction(recipient.address, 10)
+            chain.add_transaction(tx.to_dict())
 
         index = chain._last_block_index + 1
         previous_hash = chain._last_block_hash
@@ -152,9 +153,11 @@ class MyChainTester(unittest.TestCase):
 
         sender = Actor(secret_key="sender_key")
         recipient = Actor(secret_key="recipient_key")
+        chain = Chain.get_instance()
 
         with self.assertRaises(InsufficientBalanceError):
-            sender.transfer_coins(recipient.address, Config.test_net_wallet_initial_coins+1)
+            tx = sender.create_transaction(recipient.address, Config.test_net_wallet_initial_coins+1)
+            chain.add_transaction(tx.to_dict())
 
     def test_add_low_tx_counter(self):
         Config.test_net = True
@@ -162,11 +165,13 @@ class MyChainTester(unittest.TestCase):
 
         sender = Actor(secret_key="sender_key")
         recipient = Actor(secret_key="recipient_key")
+        chain = Chain.get_instance()
 
         sender.tx_counter = -1
 
         with self.assertRaises(LowTransactionCounterError):
-            sender.transfer_coins(recipient.address, 10)
+            tx = sender.create_transaction(recipient.address, 10)
+            chain.add_transaction(tx.to_dict())
 
     def test_invalid_genesis_block(self):
         chain = Chain.get_instance()
