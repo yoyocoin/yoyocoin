@@ -67,7 +67,6 @@ class Actor:
         )
         signature = self.wallet.sign(transaction.hash)
         transaction.add_signature(signature)
-        # self.chain.add_transaction(transaction.to_dict())
         self.tx_counter += 1
         return transaction
 
@@ -79,5 +78,4 @@ class Actor:
         block = self.chain.create_unsigned_block(self.wallet.address)
         signature = self.wallet.sign(block.hash)
         block.add_signature(signature)
-        # self.chain.add_block(block.to_dict())
         return block
