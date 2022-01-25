@@ -13,21 +13,9 @@ class Processor:
         self.node = node
         self._to_relay: List[bytes] = []
 
-    def _deaserialize(self, msg: bytes) -> str:
-        return msg.decode()
-
-    def _serialize(self, msg: str) -> bytes:
-        return msg.encode()
-
-    def _dict_to_json(self, d: dict) -> str:
-        return json.dumps(d)
-
-    def _json_to_dict(self, msg: str) -> dict:
-        return json.loads(msg)
-
     def process(self, msg: bytes):
-        msg_str: str = self._deaserialize(msg)
-        msg_dict: dict = self._json_to_dict(msg_str)
+        msg_str: str = msg.decode()
+        msg_dict: dict = json.loads(msg_str)
 
         msg_typ = msg_dict["msg"]["typ"]
         msg_cls = types.get(msg_typ, None)

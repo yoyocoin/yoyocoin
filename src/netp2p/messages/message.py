@@ -21,5 +21,5 @@ class Message:
         return cls.from_dict(dict_msg)
 
     @classmethod
-    def from_dict(cls, d: dict):
+    def from_dict(cls, dict_: dict):
         pass
