@@ -5,6 +5,7 @@ from queue import Queue
 
 
 RECV_BATCH = 2048
+MESSAGE_DELIMITER = b"%99"  # TODO: move to p2p network config
 
 
 class Server(ThreadingTCPServer):
@@ -52,7 +53,7 @@ class RequestHandler(BaseRequestHandler):
         while True:
             msg = self.q.get()
             try:
-                self.sock.send(msg)
+                self.sock.send(msg + MESSAGE_DELIMITER)
             except BrokenPipeError:
                 break
 

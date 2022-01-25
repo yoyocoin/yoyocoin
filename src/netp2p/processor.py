@@ -1,5 +1,11 @@
 import json
 
+from .messages import NewBlock, NewTransaction, PeerInfo
+from .messages.message import Message
+
+
+types = {clss.typ: clss for clss in [NewBlock, NewTransaction, PeerInfo]}
+
 
 class Processor:
     def __init__(self, blockchain, node) -> None:
@@ -7,40 +13,37 @@ class Processor:
         self.node = node
         self._to_relay = []
 
-    def deaserialize(self, msg: bytes) -> str:
+    def _deaserialize(self, msg: bytes) -> str:
         return msg.decode()
     
-    def serialize(self, msg: str) -> bytes:
+    def _serialize(self, msg: str) -> bytes:
         return msg.encode()
 
-    def dict_to_json(self, d: dict) -> str:
-        return json.dumps(d) 
+    def _dict_to_json(self, d: dict) -> str:
+        return json.dumps(d)
 
-    def json_to_dict(self, msg: str) -> dict:
+    def _json_to_dict(self, msg: str) -> dict:
         return json.loads(msg)
 
     def process(self, msg: bytes):
-        msg = self.deaserialize(msg)
-        m_dict = self.json_to_dict(msg)
-
-        print("preccessed msg", m_dict)
-        if m_dict["msg"] == "new-block":
-            pass
-        elif m_dict["msg"] == "new-transaction":
-            pass
-        elif m_dict["msg"] == "peer-info":
-            node_addr = m_dict["addr"]
-            print("adding peer info", node_addr)
-            self.node.nodes.add(tuple(node_addr))
-        self._relay(m_dict)
-    
-    def _relay(self, m_dict: dict):
-        m_dict["ttl"] -= 1
-        if m_dict["ttl"] <= 0:
+        msg = self._deaserialize(msg)
+        m_dict = self._json_to_dict(msg)
+        
+        msg_typ = m_dict["msg"]["typ"]
+        msg_cls = types.get(msg_typ, None)
+        if msg_cls is None:
+            print("unsupported message", msg_typ)
             return
-        msg = self.dict_to_json(m_dict)
-        msg = self.serialize(msg)
-        self._to_relay.append(msg)
+        o_msg = msg_cls.from_dict(m_dict)
+        print("preccessed msg", o_msg)
+        o_msg.process(self.chain, self.node)
+        self._relay(o_msg)
+    
+    def _relay(self, o_msg: Message):
+        o_msg.ttl -= 1
+        if o_msg.ttl <= 0:
+            return
+        self._to_relay.append(o_msg.to_bytes())
 
     @property
     def relay_messages(self) -> list:

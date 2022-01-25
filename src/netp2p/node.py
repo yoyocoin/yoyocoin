@@ -5,6 +5,7 @@ from pathlib import Path
 from .server import Server, RequestHandler
 from .processor import Processor
 from .client import Client
+from .messages import PeerInfo
 
 
 HEARTBEAT_RATE = 1 # Seconds
@@ -33,7 +34,7 @@ class Node(Thread):
 
     def broadcast(self, msg):
         """Broadcast message to peers"""
-        self._to_relay.append(msg)
+        self._to_relay.append(msg.to_bytes())
 
     def run(self):
         """Send updates to connected peers every heartbeat 1/s"""
@@ -54,9 +55,7 @@ class Node(Thread):
             if heartbeat % 10 == 0 and self._need_to_connect():
                 self._connect()
             if heartbeat % 20 == 0:
-                relay_messages.append(
-                    b'{"msg":"peer-info","ttl":5,"addr":["127.0.0.1",' + str(self.port).encode() + b']}'
-                )
+                relay_messages.append(PeerInfo(["127.0.0.1", self.port]).to_bytes())
             relay_messages.extend(self.processor.relay_messages)
             self.server.send(relay_messages)
 
@@ -92,6 +91,11 @@ class Node(Thread):
             if self._is_me(node) or self._connected_to(node):
                 continue
             print("connecting to node", node)
-            client = Client(addr=node, processor=self.processor, server_port=self.port)
+            client = Client(
+                addr=node,
+                initial_message=PeerInfo(["127.0.0.1", self.port]),
+                processor=self.processor,
+                server_port=self.port,
+            )
             client.start()
             self.clients.append(client)
