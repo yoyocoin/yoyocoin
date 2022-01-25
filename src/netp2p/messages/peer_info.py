@@ -1,5 +1,6 @@
 from .message import Message
 
+
 class PeerInfo(Message):
     typ = "peer-info"
 
@@ -7,10 +8,10 @@ class PeerInfo(Message):
         self.addr = addr
 
         super().__init__(self.__class__.typ, ttl=ttl)
-    
-    def dict(self) -> dict:
-        return {"msg": super().dict(), "addr": self.addr}
-    
+
+    def to_dict(self) -> dict:
+        return {"msg": super().to_dict(), "addr": self.addr}
+
     def process(self, blockchain, node):
         print("adding peer info", self.addr)
         node.nodes.add(tuple(self.addr))

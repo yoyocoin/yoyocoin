@@ -7,9 +7,9 @@ class NewBlock(Message):
     def __init__(self, block, ttl=10, **kwargs) -> None:
         self.block = block
         super().__init__(self.__class__.typ, ttl=ttl)
-    
-    def dict(self) -> dict:
-        return {"msg": super().dict(), "block": self.block}
+
+    def to_dict(self) -> dict:
+        return {"msg": super().to_dict(), "block": self.block}
 
     def process(self, blockchain, node):
         print("Adding candidate block")

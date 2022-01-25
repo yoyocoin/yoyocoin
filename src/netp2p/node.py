@@ -1,6 +1,7 @@
 from threading import Thread
 from time import sleep
 from pathlib import Path
+from typing import List, Set, Tuple
 
 from .server import Server, RequestHandler
 from .processor import Processor
@@ -8,7 +9,7 @@ from .client import Client
 from .messages import PeerInfo
 
 
-HEARTBEAT_RATE = 1 # Seconds
+HEARTBEAT_RATE = 1  # Seconds
 
 ROOT = Path(__file__).parent.parent
 BOOTSTRAP_LIST = str(ROOT / "config" / "bootstrap.list")
@@ -19,8 +20,8 @@ class Node(Thread):
         self.port = port
         self.blockchain = blockchain
         self.processor = Processor(blockchain, self)
-        self.nodes = set()
-        self.clients = []
+        self.nodes: Set[Tuple[str, int]] = set()
+        self.clients: List[Client] = []
         self.server = Server(
             ("0.0.0.0", self.port),
             RequestHandlerClass=RequestHandler,
@@ -28,7 +29,7 @@ class Node(Thread):
             processor=self.processor,
         )
 
-        self._to_relay = []
+        self._to_relay: List[bytes] = []
 
         super().__init__(name="node", daemon=True)
 
@@ -38,10 +39,9 @@ class Node(Thread):
 
     def run(self):
         """Send updates to connected peers every heartbeat 1/s"""
-        
+
         Thread(
-            target=lambda: self.server.serve_forever(poll_interval=0.5),
-            daemon=True
+            target=lambda: self.server.serve_forever(poll_interval=0.5), daemon=True
         ).start()  # Run the server
 
         self._load_bootstarp_nodes()
@@ -70,7 +70,7 @@ class Node(Thread):
     def _need_to_connect(self) -> bool:
         """Check if the node have less then 8 active connections and remove inactive clients"""
         c = 0
-        for i in range(0, len(self.clients)-1):
+        for i in range(0, len(self.clients) - 1):
             client = self.clients[i]
             if client.isAlive():
                 c += 1

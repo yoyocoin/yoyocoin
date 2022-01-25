@@ -109,7 +109,9 @@ class MyActorTesterOnTestNet(unittest.TestCase):
         chain.add_transaction(tx.to_dict())
         block = forger.forge_block()
         chain.add_block(block.to_dict())
-        sleep(2)  # Wait until the block is added, we set the block adding interval to 1 in the setUp method
+        sleep(
+            2
+        )  # Wait until the block is added, we set the block adding interval to 1 in the setUp method
 
         after_transaction_actor2_balance = actor2.balance
         after_transaction_actor1_balance = actor1.balance
