@@ -13,7 +13,7 @@ forge new block
 """
 
 
-from src.blockchain.block import Block
+from .block import Block
 from .chain import Chain
 from .transaction import Transaction
 from .wallet import Wallet
