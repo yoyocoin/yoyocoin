@@ -41,7 +41,6 @@ class MyActorTesterOnTestNet(unittest.TestCase):
     def test_transaction_to_self(self):
         blockchain = Chain()
         actor1 = Actor(secret_key="super_secret1!", blockchain=blockchain)
-        
 
         with self.assertRaises(ValidationError):
             tx = actor1.create_transaction(recipient=actor1.address, amount=10)
@@ -60,7 +59,6 @@ class MyActorTesterOnTestNet(unittest.TestCase):
         blockchain = Chain()
         actor1 = Actor(secret_key="super_secret1!", blockchain=blockchain)
         actor2 = Actor(secret_key="super_secret2!", blockchain=blockchain)
-        
 
         with self.assertRaises(ValidationError):
             tx = actor1.create_transaction(recipient=actor2.address, amount=10, fee=-1)
