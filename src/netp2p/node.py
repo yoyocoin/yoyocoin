@@ -1,6 +1,5 @@
 from threading import Thread
 from time import sleep
-from pathlib import Path
 from typing import List, Set, Tuple
 
 from .server import Server, RequestHandler
