@@ -39,23 +39,7 @@ from .exceptions import (
 
 
 class Chain:
-    _instance = None
-
-    @classmethod
-    def get_instance(cls):
-        if cls._instance is None:
-            cls._instance = cls(_i_know_what_i_doing=True)
-        return cls._instance
-
-    @classmethod
-    def reset(cls):
-        cls._instance = None
-
-    def __init__(self, _i_know_what_i_doing: bool = False):
-        if not _i_know_what_i_doing:
-            raise RuntimeError(
-                f"{self.__class__.__name__} is singleton use get_instance class method."
-            )
+    def __init__(self):
         self.blocks: List[Block] = []
         self.transaction_pool: Dict[
             str, Transaction
@@ -87,7 +71,7 @@ class Chain:
             )
         return self.chain_wallets[address]
 
-    def add_block(self, block_dict: dict):
+    def add_block(self, block_dict: dict):  # TODO: support block object and block dict
         """
         Add block as next block candidate
         :param block_dict: block dict representation
@@ -139,8 +123,9 @@ class Chain:
         )
         return block
 
+    @staticmethod
     def create_unsigned_transaction(
-        self, sender: str, recipient: str, amount: float, fee: float, tx_counter: int
+        sender: str, recipient: str, amount: float, fee: float, tx_counter: int
     ) -> Transaction:
         """
         Create transaction object without signature
@@ -345,3 +330,6 @@ class Chain:
             ),
             key=lambda transaction: transaction.tx_counter,
         )
+
+    def __del__(self):
+        self.next_block_chooser.stop()

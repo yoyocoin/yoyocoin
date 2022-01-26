@@ -21,9 +21,9 @@ from .config import Config
 
 
 class Actor:
-    def __init__(self, secret_key: str):
+    def __init__(self, secret_key: str, blockchain: Chain):
         self.wallet = Wallet(secret_password=secret_key)
-        self.chain = Chain.get_instance()
+        self.blockchain = blockchain
 
         self.wallet_balance = 100
 
@@ -31,7 +31,7 @@ class Actor:
 
     @property
     def _chain_wallet(self):
-        return self.chain.get_chain_wallet(self.address)
+        return self.blockchain.get_chain_wallet(self.address)
 
     @property
     def address(self) -> str:
@@ -60,7 +60,7 @@ class Actor:
         :param fee: transaction fee to speed up transaction processing (minimum value required)
         :return: None
         """
-        transaction = self.chain.create_unsigned_transaction(
+        transaction = Chain.create_unsigned_transaction(
             sender=self.wallet.address,
             recipient=recipient,
             amount=amount,
@@ -77,7 +77,7 @@ class Actor:
         Creating new block of transactions
         :return: block
         """
-        block = self.chain.create_unsigned_block(self.wallet.address)
+        block = self.blockchain.create_unsigned_block(self.wallet.address)
         signature = self.wallet.sign(block.hash)
         block.add_signature(signature)
         return block

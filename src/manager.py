@@ -7,7 +7,7 @@ from netp2p import Node, messages
 
 class Manager:
     def __init__(self, port: int = 1875) -> None:
-        self.blockchain = Chain.get_instance()
+        self.blockchain = Chain()
         self.actor = Actor(os.getenv("WALLET_SECRET_KEY", f"test-{port}"))
         self.node = Node(
             self.blockchain, os.getenv("PORT", port)
