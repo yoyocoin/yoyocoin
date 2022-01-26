@@ -7,7 +7,7 @@ this project is a work in progress and dose not ready for production
 #### Developer section
 ##### install dev requirements
 ```shell script
-pip install -r requirements_dev.txt
+pip install -r requirements-dev.txt
 ```
 
 ##### run tests
