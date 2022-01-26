@@ -3,9 +3,7 @@ from typing import List, Tuple, Callable
 from socketserver import ThreadingTCPServer, BaseRequestHandler
 from queue import Queue
 
-
-RECV_BATCH = 2048
-MESSAGE_DELIMITER = b"%99"  # TODO: move to p2p network config
+from .config import SERVER_RECV_BATCH, MESSAGE_DELIMITER
 
 
 class Server(ThreadingTCPServer):
@@ -48,7 +46,7 @@ class RequestHandler(BaseRequestHandler):
 
     def handle(self) -> None:
         print("new connection from", self.c_addr)
-        msg = self.sock.recv(RECV_BATCH)
+        msg = self.sock.recv(SERVER_RECV_BATCH)
         reply = self.server.processor.process(msg)
         if reply is not None:
             self.sock.send(reply)

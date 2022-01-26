@@ -4,9 +4,7 @@ from socket import socket
 
 from .processor import Processor
 from .messages.message import Message
-
-RECV_BATCH = 50000
-MESSAGE_DELIMITER = b"%99"  # TODO: move to p2p network config
+from .config import MESSAGE_DELIMITER, CLIENT_RECV_BATCH
 
 
 class Client(Thread):
@@ -38,7 +36,7 @@ class Client(Thread):
             return
         self.sock.send(self.initial_msg.to_bytes())  # type: ignore
         while True:
-            msg_batch = self.sock.recv(RECV_BATCH)  # type: ignore
+            msg_batch = self.sock.recv(CLIENT_RECV_BATCH)  # type: ignore
             if msg_batch == b"" or self.__stop:
                 break
             messages = msg_batch.split(MESSAGE_DELIMITER)

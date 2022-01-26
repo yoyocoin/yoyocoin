@@ -8,12 +8,12 @@ from .processor import Processor
 from .client import Client
 from .messages import PeerInfo, BlocksRequest
 from .messages.message import Message
-
-
-HEARTBEAT_RATE = 1  # Seconds
-
-ROOT = Path(__file__).parent.parent
-BOOTSTRAP_LIST = str(ROOT / "config" / "bootstrap.list")
+from .config import (
+    HEARTBEAT_RATE,
+    CONNECT_EVERY_X_HEARBEATS,
+    BROADCAST_ADDR_EVERY_X_HEARTBEATS,
+    BOOTSTRAP_LIST,
+)
 
 
 class Node(Thread):
@@ -32,6 +32,7 @@ class Node(Thread):
 
         self.__loaded_bootstrap_nodes = False
         self._to_relay: List[bytes] = []
+        self.__stop = False
 
         super().__init__(name="node", daemon=True)
 
@@ -61,19 +62,20 @@ class Node(Thread):
         self._load_bootstarp_nodes()
 
         heartbeat = 0
-        while True:
+        while not self.__stop:
             relay_messages = self._to_relay.copy()
             self._to_relay.clear()
             heartbeat += 1
             sleep(HEARTBEAT_RATE)
-            if heartbeat % 10 == 0 and self._need_to_connect():
+            if heartbeat % CONNECT_EVERY_X_HEARBEATS == 0 and self._need_to_connect():
                 self._connect(
                     initial_message=PeerInfo(["127.0.0.1", self.port])
                 )  # get updates
-            if heartbeat % 20 == 0:
+            if heartbeat % BROADCAST_ADDR_EVERY_X_HEARTBEATS == 0:
                 relay_messages.append(PeerInfo(["127.0.0.1", self.port]).to_bytes())
             relay_messages.extend(self.processor.relay_messages)
             self.server.send(relay_messages)
+        self.server.shutdown()
 
     def _load_bootstarp_nodes(self):
         if self.__loaded_bootstrap_nodes:
@@ -120,3 +122,6 @@ class Node(Thread):
             )
             client.start()
             self.clients.append(client)
+
+    def stop(self):
+        self.__stop = True
