@@ -63,7 +63,7 @@ class Chain:
         return self._save_all_blocks
 
     def is_empty(self) -> bool:
-        return len(self.blocks) <= 1
+        return self._last_block_index == 0
 
     def copy(self):
         """Create a copy of the chain for testing changes without corupting the chain"""
