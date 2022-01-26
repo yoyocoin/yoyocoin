@@ -1,10 +1,13 @@
 FROM python:3.9-slim-bullseye
 
-# copy all src code and scripts
-COPY . .
+# copy only the requirements
+COPY ./requirements.txt ./requirements.txt
 
 # install yoyocoin deps
 RUN pip install -r requirements.txt
+
+# copy all src code and scripts
+COPY . .
 
 # install IPFS
 RUN chmod -R +x /scripts

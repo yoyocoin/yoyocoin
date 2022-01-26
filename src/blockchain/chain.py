@@ -39,7 +39,8 @@ from .exceptions import (
 
 
 class Chain:
-    def __init__(self):
+    def __init__(self, save_all_blocks: bool = True):
+        self._save_all_blocks: bool = save_all_blocks
         self.blocks: List[Block] = []
         self.transaction_pool: Dict[
             str, Transaction
@@ -57,6 +58,36 @@ class Chain:
 
         self.next_block_chooser = NextBlockChooser(self)
         self.next_block_chooser.start()
+
+    def is_full(self) -> bool:
+        return self._save_all_blocks
+
+    def is_empty(self) -> bool:
+        return self._last_block_index == 0
+
+    def copy(self):
+        """Create a copy of the chain for testing changes without corupting the chain"""
+        chain_copy = Chain(save_all_blocks=True)
+        chain_copy.blocks = self.blocks.copy()
+        chain_copy.chain_wallets = (
+            self.chain_wallets.copy()
+        )  # TODO: chack copy of dict obj
+        chain_copy.epoch_random = self.epoch_random
+        chain_copy.penalty = self.penalty
+        chain_copy.sum_tree = self.sum_tree  # TODO: copy by value
+        chain_copy.transaction_pool = self.transaction_pool.copy()
+        return chain_copy
+
+    def update_state(self, other_chain):
+        """Update state of chain with other chain state
+        used when downloading the block history and when syncing the state with a better chain
+        """
+        self.blocks = other_chain.blocks
+        self.chain_wallets = other_chain.chain_wallets
+        self.epoch_random = other_chain.epoch_random
+        self.penalty = other_chain.penalty
+        self.sum_tree = other_chain.sum_tree
+        self.transaction_pool = other_chain.transaction_pool
 
     def get_chain_wallet(self, address: str) -> ChainWallet:
         """
@@ -266,6 +297,8 @@ class Chain:
         :return: None
         """
         self.blocks.append(block)
+        if not self._save_all_blocks and len(self.blocks) > 1:
+            self.blocks.pop(0)
         self.epoch_random = self._next_epoch_random(block.forger)
         for transaction in block.transactions:
             del self.transaction_pool[transaction.hash]

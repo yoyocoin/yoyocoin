@@ -31,7 +31,11 @@ class Client(Thread):
         self.sock.connect(self.addr)
 
     def run(self) -> None:
-        self.connect()
+        try:
+            self.connect()
+        except ConnectionError:
+            print(f"ERROR when connecting to {self.addr}")
+            return
         self.sock.send(self.initial_msg.to_bytes())  # type: ignore
         while True:
             msg_batch = self.sock.recv(RECV_BATCH)  # type: ignore
@@ -42,6 +46,7 @@ class Client(Thread):
                 if not msg:
                     continue
                 self.processor.process(msg)
+        print(f"closing connection with {self.addr}")
 
     def stop(self):
         self.__stop = True
