@@ -1,10 +1,19 @@
 from typing import Dict, List
 import json
 
-from .messages import NewBlock, NewTransaction, PeerInfo
+from .messages import (
+    NewBlock,
+    NewTransaction,
+    PeerInfo,
+    BlocksRequest,
+    BlocksResponse
+)
 from .messages.message import Message
 
-types: Dict[str, Message] = {clss.typ: clss for clss in [NewBlock, NewTransaction, PeerInfo]}  # type: ignore
+types: Dict[str, Message] = {
+    clss.typ: clss
+    for clss in [NewBlock, NewTransaction, PeerInfo, BlocksRequest, BlocksResponse]
+}  # type: ignore
 
 
 class Processor:
@@ -14,6 +23,10 @@ class Processor:
         self._to_relay: List[bytes] = []
 
     def process(self, msg: bytes):
+        """ There is tow types of messages
+        1. 'event' message brodcasted to me to be proccessed and broadcast forward (if ttl > 1)
+        2. 'request' message that have a response and do not broadcasted forward
+        """
         msg_str: str = msg.decode()
         msg_dict: dict = json.loads(msg_str)
 
@@ -24,8 +37,12 @@ class Processor:
             return
         msg_obj: Message = msg_cls.from_dict(msg_dict)
         print("preccessed msg", msg_obj)
-        msg_obj.process(self.chain, self.node)
-        self._relay(msg_obj)
+        
+        reply = msg_obj.process(self.chain, self.node)
+        if reply is not None:  # is a request message
+            return reply
+        
+        self._relay(msg_obj)  # is an event message
 
     def _relay(self, o_msg: Message):
         o_msg.ttl -= 1

@@ -49,7 +49,10 @@ class RequestHandler(BaseRequestHandler):
     def handle(self) -> None:
         print("new connection from", self.c_addr)
         msg = self.sock.recv(RECV_BATCH)
-        self.server.processor.process(msg)
+        reply = self.server.processor.process(msg)
+        if reply is not None:
+            self.sock.send(reply)
+            return  # Stop communication after response
 
         while True:
             msg = self.q.get()
