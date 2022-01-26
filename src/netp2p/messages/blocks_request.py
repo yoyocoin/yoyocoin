@@ -11,19 +11,23 @@ class BlocksRequest(Message):
         super().__init__(self.__class__.typ, ttl=1)
 
     def to_dict(self) -> dict:
-        return {"msg": super().to_dict(), "start_index": self.start_index, "end_index": self.end_index}
+        return {
+            "msg": super().to_dict(),
+            "start_index": self.start_index,
+            "end_index": self.end_index,
+        }
 
     def process(self, blockchain, node):
         print("Sending blocks")
         if blockchain.is_full():
             response = BlocksResponse(
                 blocks=[
-                    b.to_dict() 
+                    b.to_dict()
                     for b in blockchain.blocks[self.start_index: self.end_index]
                 ]
             ).to_bytes()
         else:
-            response = b''
+            response = b""
         return response
 
     @classmethod
@@ -34,4 +38,4 @@ class BlocksRequest(Message):
         return cls(dict_["start_index"], dict_["end_index"], **dict_["msg"])
 
     def __str__(self) -> str:
-        return f"{__class__.__name__}('ttl'={self.ttl}, 'start_index': {self.start_index}, 'end_index': {self.end_index})"
+        return f"{self.__class__.__name__}('ttl'={self.ttl}, 'start_index': {self.start_index}, 'end_index': {self.end_index})"

@@ -14,7 +14,7 @@ the object contain methods to interact with the blockchain:
 from typing import Dict, List
 import time
 from base64 import b64decode
-from itertools import chain, islice
+from itertools import islice
 from collections import defaultdict
 
 from .block import Block
@@ -69,7 +69,9 @@ class Chain:
         """Create a copy of the chain for testing changes without corupting the chain"""
         chain_copy = Chain()
         chain_copy.blocks = self.blocks.copy()
-        chain_copy.chain_wallets = self.chain_wallets.copy()  # TODO: chack copy of dict obj
+        chain_copy.chain_wallets = (
+            self.chain_wallets.copy()
+        )  # TODO: chack copy of dict obj
         chain_copy.epoch_random = self.epoch_random
         chain_copy.penalty = self.penalty
         chain_copy.sum_tree = self.sum_tree  # TODO: copy by value

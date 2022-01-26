@@ -44,8 +44,12 @@ class Node(Thread):
         from_index: the index of the block to start downloading from
         """
         self._load_bootstarp_nodes()
-        blocks_request_message = BlocksRequest(1, None)  # All the blocks after the genesis block
-        self._connect(initial_message=blocks_request_message, max_connections=1)  # download_blocks
+        blocks_request_message = BlocksRequest(
+            1, None
+        )  # All the blocks after the genesis block
+        self._connect(
+            initial_message=blocks_request_message, max_connections=1
+        )  # download_blocks
 
     def run(self):
         """Send updates to connected peers every heartbeat 1/s"""
@@ -63,7 +67,9 @@ class Node(Thread):
             heartbeat += 1
             sleep(HEARTBEAT_RATE)
             if heartbeat % 10 == 0 and self._need_to_connect():
-                self._connect(initial_message=PeerInfo(["127.0.0.1", self.port]))  # get updates
+                self._connect(
+                    initial_message=PeerInfo(["127.0.0.1", self.port])
+                )  # get updates
             if heartbeat % 20 == 0:
                 relay_messages.append(PeerInfo(["127.0.0.1", self.port]).to_bytes())
             relay_messages.extend(self.processor.relay_messages)
@@ -92,7 +98,9 @@ class Node(Thread):
         return c < 8
 
     def _connected_to(self, addr) -> bool:
-        return any([client.addr == addr and client.is_alive() for client in self.clients])
+        return any(
+            [client.addr == addr and client.is_alive() for client in self.clients]
+        )
 
     def _is_me(self, addr) -> bool:
         return addr[1] == self.port

@@ -29,8 +29,6 @@ class Client(Thread):
     def connect(self):
         self.sock = socket()
         self.sock.connect(self.addr)
-        
-        
 
     def run(self) -> None:
         try:

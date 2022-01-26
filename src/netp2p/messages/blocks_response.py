@@ -25,7 +25,7 @@ class BlocksResponse(Message):
                 b = Block.from_dict(new_b_d)
                 update_branch.link_new_block(b, _i_know_what_i_doing=True)
         except exceptions.BlockChainError:
-            return # The new update is invalid
+            return  # The new update is invalid
         blockchain.update_state(update_branch)
 
     @classmethod
@@ -36,4 +36,4 @@ class BlocksResponse(Message):
         return cls(dict_["blocks"], **dict_["msg"])
 
     def __str__(self) -> str:
-        return f"{__class__.__name__}('ttl'={self.ttl}, 'blocks': {self.blocks})"
+        return f"{self.__class__.__name__}('ttl'={self.ttl}, 'blocks': {self.blocks})"
