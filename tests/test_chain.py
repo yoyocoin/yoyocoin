@@ -41,6 +41,24 @@ class MyChainTester(unittest.TestCase):
             < (sample_size / distribution_sections) * precision
         )
 
+    def test_add_valid_block(self):
+        blockchain = Chain()
+        forger = Actor(secret_key="forger_key", blockchain=blockchain)
+
+        block = forger.forge_block()
+        blockchain.link_new_block(block, _i_know_what_i_doing=True)
+
+    def test_pruned_blockchain(self):
+        """Test blockchain that save only the last block"""
+        blockchain = Chain(save_all_blocks=False)
+        forger = Actor(secret_key="forger_key", blockchain=blockchain)
+
+        block = forger.forge_block()
+        blockchain.link_new_block(block, _i_know_what_i_doing=True)
+        block2 = forger.forge_block()
+        blockchain.link_new_block(block2, _i_know_what_i_doing=True)
+        self.assertEqual(len(blockchain.blocks), 1)
+
     def test_add_unsigned_block(self):
         blockchain = Chain()
         forger = Actor(secret_key="forger_key", blockchain=blockchain)
@@ -52,6 +70,7 @@ class MyChainTester(unittest.TestCase):
         blockchain = Chain()
         forger = Actor(secret_key="forger_key", blockchain=blockchain)
         non_forger = Actor(secret_key="non_forger_key", blockchain=blockchain)
+
         unsigned_block = blockchain.create_unsigned_block(forger=forger.address)
         bad_signature = non_forger.wallet.sign(unsigned_block.hash)
         unsigned_block.add_signature(bad_signature)
