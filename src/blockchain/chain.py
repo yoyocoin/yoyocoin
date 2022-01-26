@@ -67,7 +67,7 @@ class Chain:
 
     def copy(self):
         """Create a copy of the chain for testing changes without corupting the chain"""
-        chain_copy = Chain()
+        chain_copy = Chain(save_all_blocks=True)
         chain_copy.blocks = self.blocks.copy()
         chain_copy.chain_wallets = (
             self.chain_wallets.copy()
